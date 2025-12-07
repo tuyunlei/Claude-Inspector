@@ -38,13 +38,3 @@ export interface SessionSummary {
   storyRole: SessionStoryRole;     // The product-level role of this session
   fileSnapshotCount: number;       // Number of file snapshots
 }
-
-export interface FileBackupStatsSummary {
-  totalSnapshots: number;
-}
-
-export function extractFileBackupStatsFromSnapshots(events: ClaudeEvent[]): FileBackupStatsSummary {
-  return {
-    totalSnapshots: events.filter((e) => e.type === 'file-history-snapshot').length,
-  };
-}

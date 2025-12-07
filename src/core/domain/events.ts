@@ -10,17 +10,15 @@ export interface ClaudeContentBlock {
   signature?: string; // for thinking
 }
 
-export interface ClaudeUsage {
-  input_tokens?: number;
-  output_tokens?: number;
-}
-
 export interface ClaudeMessage {
   id?: string;
   role: 'user' | 'assistant' | 'system';
   model?: string;
   content: ClaudeContentBlock[] | string;
-  usage?: ClaudeUsage;
+  usage?: {
+    input_tokens?: number;
+    output_tokens?: number;
+  };
 }
 
 export interface ClaudeEvent {
