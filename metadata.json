@@ -1,0 +1,5 @@
+{
+  "name": "Claude Inspector",
+  "description": "A local-first, privacy-focused inspector to visualize Claude Code CLI logs, sessions, configurations, and tasks directly from your ~/.claude directory.",
+  "requestFramePermissions": []
+}
