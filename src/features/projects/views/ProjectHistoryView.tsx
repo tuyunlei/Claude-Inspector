@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useSessionController } from '../../sessions/hooks/useSessionController';
 import { SessionSidebar } from '../../sessions/components/SessionSidebar';
@@ -18,7 +17,6 @@ export const ProjectHistoryView: React.FC<ProjectHistoryViewProps> = ({ project 
       filteredSessions, 
       filter, 
       setFilter, 
-      projects, // needed by SessionSidebar component interface but unused in this specific view
       selectedSessionId, 
       setSelectedSessionId,
       selectedSession,
@@ -45,15 +43,10 @@ export const ProjectHistoryView: React.FC<ProjectHistoryViewProps> = ({ project 
           isDetailView ? "hidden md:flex" : "flex w-full md:w-auto",
           isListVisible ? "md:w-80 lg:w-96" : "md:w-0 md:overflow-hidden md:border-none"
       )}>
-        {/* We reuse SessionSidebar but we could simplify it. 
-            For now, we just pass the filtered list and single project. */}
         <SessionSidebar 
             sessions={filteredSessions}
-            projects={projects} // Passed but we override behavior
             filter={filter}
             onFilterChange={setFilter}
-            selectedProject={project.id} // Forced to current project
-            onProjectChange={(val) => { /* No-op, prevent changing project inside history view */ }}
             selectedId={selectedSessionId}
             onSelect={setSelectedSessionId}
             viewMode={viewMode}

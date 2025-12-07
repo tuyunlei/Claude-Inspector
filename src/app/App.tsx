@@ -1,9 +1,13 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { UploadPage } from '../features/upload/UploadPage';
 import { ConfigPage } from '../features/config/ConfigPage';
 import { Layout } from '../shared/components/Layout';
 import { ProjectWorkspacePage } from '../features/projects/ProjectWorkspacePage';
+import { GlobalOverviewPage } from '../features/dashboard/GlobalOverviewPage';
+import { GlobalHistoryPage } from '../features/history/GlobalHistoryPage';
+import { GlobalFilesPage } from '../features/structure/GlobalFilesPage';
+import { ProjectDirectoryPage } from '../features/projects/ProjectDirectoryPage';
 import { DataStore } from '../types';
 import { I18nProvider } from '../shared/i18n';
 import { ThemeProvider } from '../shared/theme';
@@ -16,20 +20,19 @@ export const useData = () => {
   return context;
 };
 
+// Extracted ProtectedRoute component
+const ProtectedRoute: React.FC<{ isAllowed: boolean; children: React.ReactNode }> = ({ isAllowed, children }) => {
+    if (!isAllowed) return <Navigate to="/" replace />;
+    return <>{children}</>;
+};
+
 const AppRoutes = () => {
     const [data, setData] = useState<DataStore | null>(null);
     const navigate = useNavigate();
 
     const handleDataLoaded = (store: DataStore) => {
         setData(store);
-        
-        // Auto-redirect to first project if available
-        if (store.projects && store.projects.length > 0) {
-            navigate(`/project/${encodeURIComponent(store.projects[0].id)}`);
-        } else {
-             // Fallback if no projects (unlikely if data loaded, but possible)
-             navigate('/config');
-        }
+        navigate('/overview');
     };
 
     const handleReset = () => {
@@ -37,33 +40,54 @@ const AppRoutes = () => {
         navigate('/');
     };
     
-    // Protection for routes that require data
-    const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-        if (!data) return <Navigate to="/" replace />;
-        return <>{children}</>;
-    };
+    const hasData = !!data;
 
     return (
         <DataContext.Provider value={data ? { data } : undefined}>
             <Routes>
                 {/* Public / Upload Route */}
                 <Route path="/" element={
-                     !data ? <UploadPage onDataLoaded={handleDataLoaded} /> : <Navigate to={`/project/${encodeURIComponent(data.projects[0]?.id || '')}`} replace />
+                     !data ? <UploadPage onDataLoaded={handleDataLoaded} /> : <Navigate to="/overview" replace />
                 } />
 
                 {/* Main App Layout */}
-                <Route element={<Layout hasData={!!data} onReset={handleReset} />}>
+                <Route element={<Layout hasData={hasData} onReset={handleReset} />}>
                     
-                    {/* Project Workspace */}
+                    {/* New Top-Level Routes */}
+                    <Route path="/overview" element={
+                        <ProtectedRoute isAllowed={hasData}>
+                            <GlobalOverviewPage />
+                        </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/history" element={
+                        <ProtectedRoute isAllowed={hasData}>
+                            <GlobalHistoryPage />
+                        </ProtectedRoute>
+                    } />
+
+                    <Route path="/files" element={
+                        <ProtectedRoute isAllowed={hasData}>
+                            <GlobalFilesPage />
+                        </ProtectedRoute>
+                    } />
+
+                    <Route path="/projects" element={
+                        <ProtectedRoute isAllowed={hasData}>
+                            <ProjectDirectoryPage />
+                        </ProtectedRoute>
+                    } />
+
+                    {/* Existing Project Workspace */}
                     <Route path="/project/:projectId" element={
-                        <ProtectedRoute>
+                        <ProtectedRoute isAllowed={hasData}>
                             <ProjectWorkspacePage />
                         </ProtectedRoute>
                     } />
 
-                    {/* Global Pages */}
+                    {/* Config */}
                     <Route path="/config" element={
-                        <ProtectedRoute>
+                        <ProtectedRoute isAllowed={hasData}>
                             <ConfigPage />
                         </ProtectedRoute>
                     } />

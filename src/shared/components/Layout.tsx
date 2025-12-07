@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { UploadCloud, Settings, FolderGit2, Globe, MonitorCog, PanelLeftClose, PanelLeftOpen, Sun, Moon, Languages, Menu, X, Monitor } from 'lucide-react';
+import React, { useState } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Settings, UploadCloud, Sun, Moon, Languages, Menu, X, Monitor, PanelLeftClose, PanelLeftOpen, LayoutDashboard, FolderTree, History, FolderGit2 } from 'lucide-react';
 import { cn } from '../utils';
-import { useData } from '../../app/App';
 import { useI18n } from '../i18n';
 import { useTheme, Theme } from '../theme';
-import { selectProjects } from '../../core/selectors/projects';
-import { GLOBAL_SESSIONS_ID, SYSTEM_SESSIONS_ID } from '../../core/analytics/projects';
 
 interface SidebarProps {
   onReset: () => void;
@@ -15,36 +12,21 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ onReset, isOpen, onCloseMobile }) => {
-  const { data } = useData();
-  const projects = selectProjects(data);
   const { t } = useI18n();
-  const location = useLocation();
 
-  // Helper to determine active state including nested routes
-  const isProjectActive = (id: string) => {
-      return location.pathname.startsWith(`/project/${encodeURIComponent(id)}`);
-  };
-  
-  const getProjectIcon = (type: string) => {
-      switch(type) {
-          case 'global': return <Globe size={18} />;
-          case 'system': return <MonitorCog size={18} />;
-          default: return <FolderGit2 size={18} />;
-      }
-  };
-
-  const getProjectLabel = (p: any) => {
-    if (p.id === GLOBAL_SESSIONS_ID) return t('projects.groups.globalTitle');
-    if (p.id === SYSTEM_SESSIONS_ID) return t('projects.groups.systemTitle');
-    return p.name;
-  };
+  const navItems = [
+      { path: '/overview', icon: LayoutDashboard, label: t('workspace.tabs.overview') },
+      { path: '/projects', icon: FolderGit2, label: 'Projects' },
+      { path: '/history', icon: History, label: 'Global History' },
+      { path: '/files', icon: FolderTree, label: 'Global Files' },
+  ];
 
   return (
     <div className={cn(
         "bg-slate-900 dark:bg-slate-950 text-slate-300 flex flex-col h-full border-r border-slate-800 transition-all duration-300",
         isOpen ? "w-64" : "w-0 md:w-16 overflow-hidden"
     )}>
-      {/* Sidebar Header (Logo Area) - Only visible when open or on desktop collapsed */}
+      {/* Sidebar Header (Logo Area) */}
       <div className="p-4 h-14 flex items-center shrink-0 border-b border-slate-800">
          <div className={cn("flex items-center gap-2 font-bold text-white transition-opacity", !isOpen && "md:justify-center md:w-full")}>
             <span className={cn("text-orange-500", !isOpen && "md:hidden")}>Claude</span> 
@@ -56,33 +38,25 @@ const Sidebar: React.FC<SidebarProps> = ({ onReset, isOpen, onCloseMobile }) => 
          </button>
       </div>
 
-      {/* Project List */}
+      {/* Main Navigation */}
       <div className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
-        <div className={cn("text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-2 transition-opacity", !isOpen && "md:hidden")}>
-             {t('sidebar.projects')}
-        </div>
-        
-        {projects.length === 0 && isOpen && (
-            <div className="px-4 text-sm text-slate-500">{t('sidebar.noProjects')}</div>
-        )}
-
-        {projects.map((p) => (
+        {navItems.map((item) => (
             <NavLink
-                key={p.id}
-                to={`/project/${encodeURIComponent(p.id)}`}
+                key={item.path}
+                to={item.path}
                 onClick={onCloseMobile}
-                title={!isOpen ? getProjectLabel(p) : undefined}
+                title={!isOpen ? item.label : undefined}
                 className={({ isActive }) => cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm",
-                    isProjectActive(p.id)
+                    isActive
                         ? "bg-orange-600 text-white shadow-lg shadow-orange-900/20"
                         : "hover:bg-slate-800 hover:text-white",
                     !isOpen && "justify-center px-0"
                 )}
             >
-                {getProjectIcon(p.groupType)}
+                <item.icon size={18} />
                 <span className={cn("truncate font-medium", !isOpen && "md:hidden")}>
-                    {getProjectLabel(p)}
+                    {item.label}
                 </span>
             </NavLink>
         ))}

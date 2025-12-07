@@ -1,17 +1,14 @@
 import React from 'react';
-import { Search, FolderGit2, Filter, MonitorCog, History, MessageSquare, Terminal, Activity, PanelLeftClose } from 'lucide-react';
+import { Search, FolderGit2, MonitorCog, History, MessageSquare, Terminal, Activity, PanelLeftClose } from 'lucide-react';
 import { cn, formatDate } from '../../../shared/utils';
 import { useI18n } from '../../../shared/i18n';
-import { SessionSummary, ProjectStats, SessionStoryRole } from '../../../types';
+import { SessionSummary, SessionStoryRole } from '../../../types';
 import { GLOBAL_SESSIONS_ID, SYSTEM_SESSIONS_ID, UNKNOWN_PROJECT_PATH } from '../../../core/analytics/projects';
 
 interface SessionSidebarProps {
     sessions: SessionSummary[];
-    projects: ProjectStats[];
     filter: string;
     onFilterChange: (val: string) => void;
-    selectedProject: string;
-    onProjectChange: (val: string) => void;
     selectedId: string | null;
     onSelect: (id: string) => void;
     viewMode: SessionStoryRole;
@@ -21,7 +18,7 @@ interface SessionSidebarProps {
 }
 
 export const SessionSidebar: React.FC<SessionSidebarProps> = ({ 
-    sessions, projects, filter, onFilterChange, selectedProject, onProjectChange, selectedId, onSelect,
+    sessions, filter, onFilterChange, selectedId, onSelect,
     viewMode, onViewModeChange, className, onClose
 }) => {
     const { t } = useI18n();
@@ -42,12 +39,6 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
         
         // Show last two parts of path for clarity
         return path.split('/').slice(-2).join('/');
-    };
-
-    const getDropdownLabel = (p: ProjectStats) => {
-        if (p.id === GLOBAL_SESSIONS_ID) return t('projects.groups.globalTitle');
-        if (p.id === SYSTEM_SESSIONS_ID) return t('projects.groups.systemTitle');
-        return p.name;
     };
 
     // Defense against raw UUIDs
@@ -100,21 +91,6 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
                             <PanelLeftClose size={18} />
                         </button>
                     )}
-                </div>
-
-                {/* Project Filter */}
-                <div className="relative">
-                    <Filter className="absolute left-3 top-2.5 text-slate-400" size={14} />
-                    <select
-                        className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm appearance-none outline-none focus:ring-2 focus:ring-orange-500 text-slate-700 dark:text-slate-200"
-                        value={selectedProject}
-                        onChange={(e) => onProjectChange(e.target.value)}
-                    >
-                        <option value="">All Projects</option>
-                        {projects.map(p => (
-                            <option key={p.id} value={p.id}>{getDropdownLabel(p)}</option>
-                        ))}
-                    </select>
                 </div>
 
                 {/* Text Filter */}

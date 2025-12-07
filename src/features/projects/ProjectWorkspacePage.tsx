@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Navigate, useSearchParams } from 'react-router-dom';
 import { useData } from '../../app/App';
@@ -46,9 +45,9 @@ export const ProjectWorkspacePage: React.FC = () => {
   const project = projects.find(p => p.id === projectId);
 
   if (!project) {
-      // If no project found (and data loaded), redirect to first project or showing error
+      // If no project found (and data loaded), redirect to directory instead of arbitrary first project
       if (projects.length > 0) {
-          return <Navigate to={`/project/${encodeURIComponent(projects[0].id)}`} replace />;
+          return <Navigate to="/projects" replace />;
       }
       return <div className="p-8 text-center text-slate-500">No project found. Please upload logs.</div>;
   }
