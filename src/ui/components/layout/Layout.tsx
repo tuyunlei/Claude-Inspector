@@ -1,7 +1,6 @@
-
 import React, { useState, useRef } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Settings, UploadCloud, Sun, Moon, Languages, Menu, X, Monitor, PanelLeftClose, PanelLeftOpen, LayoutDashboard, FolderTree, History, FolderGit2, FileJson } from 'lucide-react';
+import { Settings, UploadCloud, Sun, Moon, Languages, Menu, X, Monitor, PanelLeftClose, PanelLeftOpen, LayoutDashboard, FolderTree, History, FolderGit2, FileJson, Bug } from 'lucide-react';
 import { cn } from '../../../utils/utils';
 import { useI18n } from '../../i18n';
 import { useTheme, Theme } from '../../theme';
@@ -75,6 +74,22 @@ const Sidebar: React.FC<SidebarProps> = ({ onReset, onConfigUpload, isOpen, onCl
 
       {/* Footer Actions */}
       <div className="p-3 border-t border-slate-200 dark:border-slate-800 space-y-1">
+         <NavLink
+            to="/debug/markdown"
+            onClick={onCloseMobile}
+            title={!isOpen ? "Markdown Debug" : undefined}
+            className={({ isActive }) => cn(
+                "flex items-center gap-3 px-3 py-2 w-full rounded-lg transition-colors text-xs font-medium",
+                isActive 
+                    ? "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300" 
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200",
+                !isOpen && "justify-center"
+            )}
+         >
+            <Bug size={16} className="shrink-0" />
+            <span className={cn(!isOpen && "md:hidden")}>Markdown Debug</span>
+         </NavLink>
+
          {onConfigUpload && (
              <>
                  <input 

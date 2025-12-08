@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { UploadPage } from '../ui/pages/UploadPage';
@@ -9,6 +8,7 @@ import { DashboardPage } from '../ui/pages/DashboardPage';
 import { GlobalHistoryPage } from '../ui/pages/GlobalHistoryPage';
 import { GlobalFilesPage } from '../ui/pages/GlobalFilesPage';
 import { ProjectDirectoryPage } from '../ui/pages/Projects/ProjectDirectoryPage';
+import { MarkdownDebugPage } from '../ui/pages/MarkdownDebugPage';
 import { DataStore } from '../model/datastore';
 import { I18nProvider } from '../ui/i18n';
 import { ThemeProvider } from '../ui/theme';
@@ -117,6 +117,13 @@ const AppRoutes = () => {
                     <Route path="/config" element={
                         <ProtectedRoute isAllowed={hasData}>
                             <ConfigPage />
+                        </ProtectedRoute>
+                    } />
+
+                    {/* Markdown Debug */}
+                    <Route path="/debug/markdown" element={
+                        <ProtectedRoute isAllowed={hasData}>
+                            <MarkdownDebugPage />
                         </ProtectedRoute>
                     } />
 
