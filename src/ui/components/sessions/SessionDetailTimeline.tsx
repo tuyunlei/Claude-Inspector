@@ -1,5 +1,15 @@
-import React, { useRef, useState, useLayoutEffect, useCallback, useMemo } from 'react';
-import { VariableSizeList as List } from 'react-window';
+import React, {
+  useRef,
+  useEffect,
+  useCallback,
+  useState,
+  useMemo,
+  ReactElement,
+} from 'react';
+import {
+  VariableSizeList as List,
+  ListChildComponentProps,
+} from 'react-window';
 import { Search, Activity, PanelLeftOpen } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import { ClaudeEvent } from '../../../model/events';
@@ -13,125 +23,142 @@ interface SessionDetailTimelineProps {
   showSystemFooter?: boolean;
 }
 
-// Height estimates for virtual list items
-const ITEM_HEIGHT_EVENT = 120;
-const ITEM_HEIGHT_MARKER = 64; // increased slightly to account for margins
-const ITEM_HEIGHT_FOOTER = 160;
-
+// -- Row Modeling --
 type TimelineRowKind = 'start' | 'event' | 'end' | 'footer';
 
-function getRowKind(index: number, eventsLength: number, hasFooter: boolean): { kind: TimelineRowKind; eventIndex?: number } {
-  if (index === 0) {
-    return { kind: 'start' };
-  }
-  if (index === eventsLength + 1) {
-    return { kind: 'end' };
-  }
-  if (hasFooter && index === eventsLength + 2) {
-    return { kind: 'footer' };
-  }
-  // 1..eventsLength corresponds to events[0..N-1]
+function getRowKind(
+  index: number,
+  eventsLength: number,
+  hasFooter: boolean,
+): { kind: TimelineRowKind; eventIndex?: number } {
+  if (index === 0) return { kind: 'start' };
+  if (index === eventsLength + 1) return { kind: 'end' };
+  if (hasFooter && index === eventsLength + 2) return { kind: 'footer' };
   return { kind: 'event', eventIndex: index - 1 };
 }
 
-export const SessionDetailTimeline: React.FC<SessionDetailTimelineProps> = ({
-  events,
-  query,
-  onQueryChange,
-  onExpandList,
-  showSystemFooter
-}) => {
-  const { t } = useI18n();
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const listRef = useRef<List | null>(null);
-  const [listHeight, setListHeight] = useState<number>(0);
-  const [listWidth, setListWidth] = useState<number>(0);
+// -- Dynamic Height Hook --
+const useRowMeasurement = (
+  index: number,
+  setSize: (index: number, size: number) => void,
+) => {
+  const rowRef = useRef<HTMLDivElement | null>(null);
 
-  const hasSystemFooter = !!showSystemFooter;
-  const baseItemCount = events.length + 2; // start + end
-  const itemCount = hasSystemFooter ? baseItemCount + 1 : baseItemCount;
+  useEffect(() => {
+    const element = rowRef.current;
+    if (!element) return;
 
-  useLayoutEffect(() => {
-    function updateSize() {
-      if (containerRef.current) {
-        setListHeight(containerRef.current.clientHeight);
-        setListWidth(containerRef.current.clientWidth);
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        // Use borderBoxSize if available for better accuracy, fallback to contentRect
+        const height =
+          (entry as any).borderBoxSize?.[0]?.blockSize ??
+          entry.contentRect.height;
+        if (height && height > 0) {
+          setSize(index, height);
+        }
       }
-    }
+    });
 
-    updateSize();
-    window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
-  }, []);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [index, setSize]);
 
-  const getItemSize = useCallback(
-    (index: number) => {
-      const { kind } = getRowKind(index, events.length, hasSystemFooter);
-      if (kind === 'event') return ITEM_HEIGHT_EVENT;
-      if (kind === 'footer') return ITEM_HEIGHT_FOOTER;
-      // start / end markers
-      return ITEM_HEIGHT_MARKER;
-    },
-    [events.length, hasSystemFooter]
-  );
+  return rowRef;
+};
 
-  const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
-    const { kind, eventIndex } = getRowKind(index, events.length, hasSystemFooter);
-    
-    // Adjust style to account for horizontal padding of container
-    const rowStyle = { ...style, paddingLeft: '1rem', paddingRight: '1rem' };
-    const mdRowStyle = { ...style, paddingLeft: '1.5rem', paddingRight: '1.5rem' };
-    
-    // Determine effective style based on a simple heuristic or just apply padding inside the div
-    // Since we can't easily switch style based on media query in JS without a listener, 
-    // we will apply the padding via classNames inside the wrapper, and let 'style' control layout.
-    // However, react-window style sets width: 100%. If we want padding, we should put a div inside.
+// -- Row Data Interface --
+interface RowData {
+  events: ClaudeEvent[];
+  query: string;
+  hasSystemFooter: boolean;
+  setSize: (index: number, size: number) => void;
+  t: (key: string, args?: Record<string, string>) => string;
+}
 
-    if (kind === 'start') {
-      return (
-        <div style={style} className="px-4 md:px-6 flex items-center justify-center gap-3 opacity-50">
+// -- Row Component --
+function TimelineRow(props: ListChildComponentProps<RowData>): ReactElement {
+  const {
+    index,
+    style,
+    data,
+  } = props;
+
+  const {
+    events,
+    query,
+    hasSystemFooter,
+    setSize,
+    t,
+  } = data;
+
+  const { kind, eventIndex } = getRowKind(index, events.length, hasSystemFooter);
+  const rowRef = useRowMeasurement(index, setSize);
+
+  // Note: We use a wrapper div with `style` (from react-window) and an inner div with `ref` (for ResizeObserver).
+  // This allows the inner content to grow naturally and be measured, even if the outer container has a fixed height temporarily.
+
+  if (kind === 'start') {
+    return (
+      <div style={style}>
+        <div
+          ref={rowRef}
+          className="px-4 md:px-6 py-8 flex items-center justify-center gap-3 opacity-50"
+        >
           <div className="h-px w-12 bg-slate-300 dark:bg-slate-600" />
           <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">
             Start of Session
           </span>
           <div className="h-px w-12 bg-slate-300 dark:bg-slate-600" />
         </div>
-      );
-    }
+      </div>
+    );
+  }
 
-    if (kind === 'end') {
-      return (
-        <div style={style} className="px-4 md:px-6 flex items-center justify-center gap-3 opacity-30">
+  if (kind === 'end') {
+    return (
+      <div style={style}>
+        <div
+          ref={rowRef}
+          className="px-4 md:px-6 py-8 flex items-center justify-center gap-3 opacity-30"
+        >
           <div className="h-px w-12 bg-slate-300 dark:bg-slate-600" />
           <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">
             End of Session
           </span>
           <div className="h-px w-12 bg-slate-300 dark:bg-slate-600" />
         </div>
-      );
-    }
+      </div>
+    );
+  }
 
-    if (kind === 'footer') {
-      return (
-        <div style={style} className="px-4 md:px-6 flex items-center justify-center">
+  if (kind === 'footer') {
+    return (
+      <div style={style}>
+        <div
+          ref={rowRef}
+          className="px-4 md:px-6 py-8 flex items-center justify-center"
+        >
           <div className="bg-slate-100 dark:bg-slate-900 p-6 rounded-lg text-center text-xs text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 max-w-lg mx-auto w-full">
             <Activity size={24} className="mx-auto mb-2 text-slate-400" />
             <p className="mb-2 font-medium">{t('sessions.systemView.description')}</p>
             <p className="opacity-75">{t('sessions.systemView.safeToIgnore')}</p>
           </div>
         </div>
-      );
-    }
+      </div>
+    );
+  }
 
-    // kind === 'event'
-    if (eventIndex == null || eventIndex < 0 || eventIndex >= events.length) {
-      return null;
-    }
+  // Event Row
+  if (eventIndex == null || eventIndex < 0 || eventIndex >= events.length) {
+    return <div style={style} ref={rowRef} />;
+  }
 
-    const event = events[eventIndex];
+  const event = events[eventIndex];
 
-    return (
-      <div style={style} className="px-4 md:px-6 w-full">
+  return (
+    <div style={style}>
+      <div ref={rowRef} className="px-4 md:px-6 w-full">
         <EventRow
           key={event.uuid || eventIndex}
           event={event}
@@ -139,13 +166,93 @@ export const SessionDetailTimeline: React.FC<SessionDetailTimelineProps> = ({
           index={eventIndex}
         />
       </div>
-    );
-  };
+    </div>
+  );
+}
+
+// -- Main Component --
+export const SessionDetailTimeline: React.FC<SessionDetailTimelineProps> = ({
+  events,
+  query,
+  onQueryChange,
+  onExpandList,
+  showSystemFooter,
+}) => {
+  const { t } = useI18n();
+  const listRef = useRef<List>(null);
+  const sizeMapRef = useRef<Map<number, number>>(new Map());
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  const hasSystemFooter = !!showSystemFooter;
+  const baseRowCount = events.length + 2; // start + end
+  const rowCount = hasSystemFooter ? baseRowCount + 1 : baseRowCount;
+
+  // Constants for default heights
+  const MARKER_HEIGHT = 80;
+  const FOOTER_HEIGHT = 180;
+  const DEFAULT_EVENT_HEIGHT = 100;
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      if (entries[0]) {
+        setDimensions({
+          width: entries[0].contentRect.width,
+          height: entries[0].contentRect.height,
+        });
+      }
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Reset cache when events change
+  useEffect(() => {
+    sizeMapRef.current.clear();
+    listRef.current?.resetAfterIndex?.(0);
+  }, [events]);
+
+  const setSize = useCallback((index: number, size: number) => {
+    const map = sizeMapRef.current;
+    const prev = map.get(index) ?? 0;
+    // Only update if difference is significant to avoid thrashing
+    if (Math.abs(prev - size) > 0.5) {
+      map.set(index, size);
+      listRef.current?.resetAfterIndex?.(index);
+    }
+  }, []);
+
+  const getRowHeight = useCallback(
+    (index: number) => {
+      const { kind } = getRowKind(index, events.length, hasSystemFooter);
+      const cached = sizeMapRef.current.get(index);
+
+      if (cached !== undefined) return cached;
+
+      if (kind === 'start' || kind === 'end') return MARKER_HEIGHT;
+      if (kind === 'footer') return FOOTER_HEIGHT;
+      return DEFAULT_EVENT_HEIGHT;
+    },
+    [events.length, hasSystemFooter],
+  );
+
+  const rowProps: RowData = useMemo(
+    () => ({
+      events,
+      query,
+      hasSystemFooter,
+      setSize,
+      t,
+    }),
+    [events, query, hasSystemFooter, setSize, t],
+  );
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
-      {/* Search Bar / Toolbar Area */}
-      <div className="px-4 py-3 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3 sticky top-0 z-10">
+    <div className="flex-1 flex flex-col min-h-0 bg-slate-50 dark:bg-slate-950">
+      
+      {/* Sticky Search Header */}
+      <div className="px-4 py-3 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3 shrink-0 z-20">
         <div className="relative group flex-1 max-w-md">
           <Search className="absolute left-2.5 top-2 text-slate-400 group-focus-within:text-orange-500" size={14} />
           <input
@@ -157,7 +264,6 @@ export const SessionDetailTimeline: React.FC<SessionDetailTimelineProps> = ({
           />
         </div>
         
-        {/* Optional Expand List Button (Contextual) */}
         {onExpandList && (
            <button 
              onClick={onExpandList} 
@@ -169,43 +275,28 @@ export const SessionDetailTimeline: React.FC<SessionDetailTimelineProps> = ({
         )}
       </div>
 
-      {/* Timeline Scroll Area */}
-      <div 
-        ref={containerRef}
-        className="flex-1 bg-slate-50 dark:bg-slate-950 min-h-0"
-      >
+      {/* Virtualized List Container */}
+      <div className="flex-1 min-h-0" ref={containerRef}>
         {events.length === 0 ? (
-          <div className="p-6">
-            <div className="flex items-center justify-center gap-3 opacity-50 mb-8">
-                <div className="h-px w-12 bg-slate-300 dark:bg-slate-600"></div>
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Start of Session</span>
-                <div className="h-px w-12 bg-slate-300 dark:bg-slate-600"></div>
-            </div>
-            
-            <div className="text-center py-12 text-slate-400 text-sm italic border border-dashed border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/20">
-              {t('sessions.eventCount')}: 0
-            </div>
-
-            <div className="flex items-center justify-center gap-3 opacity-30 mt-8 mb-4">
-                <div className="h-px w-12 bg-slate-300 dark:bg-slate-600"></div>
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">End of Session</span>
-                <div className="h-px w-12 bg-slate-300 dark:bg-slate-600"></div>
-            </div>
-          </div>
+           <div className="p-6 h-full flex flex-col items-center justify-center opacity-50">
+               <div className="text-center text-slate-400 text-sm italic">
+                  {t('sessions.noChatEvents')}
+               </div>
+           </div>
         ) : (
-          listHeight > 0 && (
-            <List
-              height={listHeight}
-              width={listWidth || '100%'}
-              itemCount={itemCount}
-              itemSize={getItemSize}
-              overscanCount={8}
-              ref={listRef}
-              className="scroll-smooth"
-            >
-              {Row}
-            </List>
-          )
+            dimensions.height > 0 && (
+                <List
+                  ref={listRef}
+                  height={dimensions.height}
+                  width={dimensions.width}
+                  itemCount={rowCount}
+                  itemSize={getRowHeight}
+                  itemData={rowProps}
+                  overscanCount={8}
+                >
+                  {TimelineRow}
+                </List>
+            )
         )}
       </div>
     </div>
