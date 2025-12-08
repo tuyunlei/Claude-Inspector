@@ -1,26 +1,36 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Settings, UploadCloud, Sun, Moon, Languages, Menu, X, Monitor, PanelLeftClose, PanelLeftOpen, LayoutDashboard, FolderTree, History, FolderGit2 } from 'lucide-react';
+import { Settings, UploadCloud, Sun, Moon, Languages, Menu, X, Monitor, PanelLeftClose, PanelLeftOpen, LayoutDashboard, FolderTree, History, FolderGit2, FileJson } from 'lucide-react';
 import { cn } from '../../../utils/utils';
 import { useI18n } from '../../i18n';
 import { useTheme, Theme } from '../../theme';
 
 interface SidebarProps {
   onReset: () => void;
+  onConfigUpload?: (file: File) => void;
   isOpen: boolean;
   onCloseMobile: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onReset, isOpen, onCloseMobile }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onReset, onConfigUpload, isOpen, onCloseMobile }) => {
   const { t } = useI18n();
+  const configInputRef = useRef<HTMLInputElement>(null);
 
   const navItems = [
       { path: '/overview', icon: LayoutDashboard, label: t('workspace.tabs.overview') },
       { path: '/projects', icon: FolderGit2, label: t('sidebar.projects') },
       { path: '/history', icon: History, label: t('sidebar.globalHistory') },
       { path: '/files', icon: FolderTree, label: t('sidebar.globalFiles') },
+      { path: '/config', icon: Settings, label: t('sidebar.globalConfig') },
   ];
+
+  const handleConfigSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0] && onConfigUpload) {
+          onConfigUpload(e.target.files[0]);
+          e.target.value = ''; // Reset
+      }
+  };
 
   return (
     <div className={cn(
@@ -65,22 +75,28 @@ const Sidebar: React.FC<SidebarProps> = ({ onReset, isOpen, onCloseMobile }) => 
 
       {/* Footer Actions */}
       <div className="p-3 border-t border-slate-200 dark:border-slate-800 space-y-1">
-         <NavLink
-            to="/config"
-            onClick={onCloseMobile}
-            title={!isOpen ? t('sidebar.globalConfig') : undefined}
-            className={({ isActive }) => cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs font-medium",
-                isActive 
-                    ? "bg-orange-50 text-orange-700 dark:bg-slate-800 dark:text-orange-400" 
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200",
-                !isOpen && "justify-center"
-            )}
-         >
-             <Settings size={16} className="shrink-0" />
-             <span className={cn(!isOpen && "md:hidden")}>{t('sidebar.globalConfig')}</span>
-         </NavLink>
-
+         {onConfigUpload && (
+             <>
+                 <input 
+                    type="file" 
+                    ref={configInputRef}
+                    className="hidden"
+                    accept=".json"
+                    onChange={handleConfigSelect}
+                 />
+                 <button
+                  onClick={() => configInputRef.current?.click()}
+                  title={!isOpen ? t('sidebar.uploadConfig') : undefined}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 w-full rounded-lg transition-colors text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200",
+                    !isOpen && "justify-center"
+                  )}
+                >
+                  <FileJson size={16} className="shrink-0" />
+                  <span className={cn(!isOpen && "md:hidden")}>{t('sidebar.uploadConfig')}</span>
+                </button>
+             </>
+         )}
          <button
           onClick={onReset}
           title={!isOpen ? t('sidebar.upload') : undefined}
@@ -97,12 +113,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onReset, isOpen, onCloseMobile }) => 
   );
 };
 
-export const Layout: React.FC<{ hasData: boolean; onReset: () => void }> = ({ hasData, onReset }) => {
+export const Layout: React.FC<{ hasData: boolean; onReset: () => void; onConfigUpload?: (file: File) => void }> = ({ hasData, onReset, onConfigUpload }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const { theme, setTheme } = useTheme();
-  const { language, setLanguage } = useI18n();
-  const { t } = useI18n();
+  const { language, setLanguage, t } = useI18n();
 
   const toggleLanguage = () => {
     setLanguage(language === 'en' ? 'zh' : 'en');
@@ -144,6 +159,7 @@ export const Layout: React.FC<{ hasData: boolean; onReset: () => void }> = ({ ha
       )}>
          <Sidebar 
             onReset={onReset} 
+            onConfigUpload={onConfigUpload}
             isOpen={desktopSidebarOpen}
             onCloseMobile={() => setMobileMenuOpen(false)} 
          />

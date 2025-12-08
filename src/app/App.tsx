@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { UploadPage } from '../ui/pages/UploadPage';
@@ -32,6 +33,40 @@ const AppRoutes = () => {
         setData(null);
         navigate('/');
     };
+
+    const handleConfigUpload = async (file: File) => {
+        if (!data) return;
+        try {
+            const text = await file.text();
+            let json;
+            try {
+                json = JSON.parse(text);
+            } catch (e) {
+                 alert("Invalid JSON file");
+                 return;
+            }
+            
+            // Shallow clone data
+            const newData = { ...data };
+            // Clone config to avoid mutation
+            newData.config = { ...data.config };
+            
+            // Update raw and merged
+            newData.config.extraMcpJson = text;
+            if (json.mcpServers) {
+                newData.config.mcpServers = {
+                    ...(newData.config.mcpServers || {}),
+                    ...json.mcpServers
+                };
+            }
+            
+            setData(newData);
+            navigate('/config');
+        } catch (e) {
+            console.error(e);
+            alert("Failed to process config file");
+        }
+    };
     
     const hasData = !!data;
 
@@ -44,7 +79,7 @@ const AppRoutes = () => {
                 } />
 
                 {/* Main App Layout */}
-                <Route element={<Layout hasData={hasData} onReset={handleReset} />}>
+                <Route element={<Layout hasData={hasData} onReset={handleReset} onConfigUpload={handleConfigUpload} />}>
                     
                     {/* New Top-Level Routes */}
                     <Route path="/overview" element={

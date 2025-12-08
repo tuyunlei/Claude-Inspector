@@ -1,3 +1,4 @@
+
 export const generalUi = {
   en: {
     sidebar: {
@@ -5,6 +6,7 @@ export const generalUi = {
       subtitle: "Local Log Inspector",
       projects: "Projects",
       upload: "Upload Logs",
+      uploadConfig: "Add Config",
       globalConfig: "Global Config",
       collapse: "Collapse Sidebar",
       expand: "Expand Sidebar",
@@ -52,6 +54,7 @@ export const generalUi = {
       subtitle: "本地日志分析器",
       projects: "项目列表",
       upload: "重新上传",
+      uploadConfig: "补充配置",
       globalConfig: "全局配置",
       collapse: "收起侧边栏",
       expand: "展开侧边栏",
