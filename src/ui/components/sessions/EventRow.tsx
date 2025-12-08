@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ClaudeEvent } from '../../../model/events';
 import { cn } from '../../../utils/utils';
-import { FileJson, Check, Copy, AlertCircle, Terminal } from 'lucide-react';
+import { FileJson, Check, Copy, AlertCircle, Terminal, User, Sparkles, FolderGit2 } from 'lucide-react';
 import { ChatBubble } from './ChatBubble';
 import { FileSnapshotBlock } from './FileSnapshotBlock';
 import { useI18n } from '../../i18n';
@@ -11,9 +11,10 @@ interface EventRowProps {
     event: ClaudeEvent;
     query: string;
     index: number;
+    isLast?: boolean;
 }
 
-export const EventRow: React.FC<EventRowProps> = ({ event, query, index }) => {
+export const EventRow: React.FC<EventRowProps> = ({ event, query, index, isLast }) => {
     const { t } = useI18n();
     const [showRaw, setShowRaw] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -40,10 +41,13 @@ export const EventRow: React.FC<EventRowProps> = ({ event, query, index }) => {
 
         // Fallback for unknown/system types
         return (
-            <div className="p-3 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-sm">
-                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-1">
-                    <AlertCircle size={14} />
+            <div className="p-4 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-sm">
+                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-2">
+                    <AlertCircle size={16} />
                     <span className="font-semibold text-xs uppercase">{event.type || 'Unknown Type'}</span>
+                    <span className="text-[10px] font-mono opacity-60 ml-auto">
+                        {new Date(event.timestamp).toLocaleTimeString()}
+                    </span>
                 </div>
                 {/* Try to show some meaningful preview if possible */}
                 <div className="font-mono text-xs text-slate-600 dark:text-slate-300 opacity-80 break-all line-clamp-3">
@@ -53,40 +57,17 @@ export const EventRow: React.FC<EventRowProps> = ({ event, query, index }) => {
         );
     };
 
-    const getTypeColor = (type: string) => {
-        switch(type) {
-            case 'message': return 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/30';
-            case 'file-history-snapshot': return 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-900/30';
-            case 'tool_use': 
-            case 'tool_result':
-                return 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/30';
-            default: return 'text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700';
-        }
-    };
-
-    const timestamp = new Date(event.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
     return (
-        <div className="group relative pl-4 pb-6 border-l-2 border-slate-200 dark:border-slate-800 last:border-0 last:pb-0">
-            {/* Timeline Dot */}
-            <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600 ring-4 ring-slate-50 dark:ring-slate-950" />
-
-            {/* Meta Header */}
-            <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-3">
-                     <span className={cn("px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border", getTypeColor(event.type))}>
-                        {event.type}
-                     </span>
-                     <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
-                        {timestamp}
-                     </span>
-                </div>
-
+        <div className="group relative pb-4">
+            {/* Header / Meta Actions (Hidden by default, shown on hover for cleaner look) */}
+            <div className="absolute right-0 top-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button 
                     onClick={() => setShowRaw(!showRaw)}
                     className={cn(
-                        "p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors",
-                        showRaw ? "text-orange-500 bg-orange-50 dark:bg-orange-900/20" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                        "p-1.5 rounded-lg transition-colors border",
+                        showRaw 
+                            ? "bg-orange-50 dark:bg-orange-900/20 text-orange-600 border-orange-200 dark:border-orange-900" 
+                            : "bg-white dark:bg-slate-800 text-slate-400 hover:text-slate-700 border-slate-200 dark:border-slate-700"
                     )}
                     title="View Raw JSON"
                 >
