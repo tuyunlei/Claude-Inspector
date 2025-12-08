@@ -1,24 +1,17 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { UploadPage } from '../features/upload/UploadPage';
-import { ConfigPage } from '../features/config/ConfigPage';
-import { Layout } from '../shared/components/Layout';
-import { ProjectWorkspacePage } from '../features/projects/ProjectWorkspacePage';
-import { GlobalOverviewPage } from '../features/dashboard/GlobalOverviewPage';
-import { GlobalHistoryPage } from '../features/history/GlobalHistoryPage';
-import { GlobalFilesPage } from '../features/structure/GlobalFilesPage';
-import { ProjectDirectoryPage } from '../features/projects/ProjectDirectoryPage';
-import { DataStore } from '../types';
-import { I18nProvider } from '../shared/i18n';
-import { ThemeProvider } from '../shared/theme';
-
-const DataContext = createContext<{ data: DataStore } | undefined>(undefined);
-
-export const useData = () => {
-  const context = useContext(DataContext);
-  if (!context) throw new Error('useData must be used within DataContext');
-  return context;
-};
+import { UploadPage } from '../ui/pages/UploadPage';
+import { ConfigPage } from '../ui/pages/ConfigPage';
+import { Layout } from '../ui/components/layout/Layout';
+import { ProjectWorkspacePage } from '../ui/pages/ProjectWorkspace/ProjectWorkspacePage';
+import { DashboardPage } from '../ui/pages/DashboardPage';
+import { GlobalHistoryPage } from '../ui/pages/GlobalHistoryPage';
+import { GlobalFilesPage } from '../ui/pages/GlobalFilesPage';
+import { ProjectDirectoryPage } from '../ui/pages/Projects/ProjectDirectoryPage';
+import { DataStore } from '../model/datastore';
+import { I18nProvider } from '../ui/i18n';
+import { ThemeProvider } from '../ui/theme';
+import { DataContext } from './DataContext';
 
 // Extracted ProtectedRoute component
 const ProtectedRoute: React.FC<{ isAllowed: boolean; children: React.ReactNode }> = ({ isAllowed, children }) => {
@@ -56,7 +49,7 @@ const AppRoutes = () => {
                     {/* New Top-Level Routes */}
                     <Route path="/overview" element={
                         <ProtectedRoute isAllowed={hasData}>
-                            <GlobalOverviewPage />
+                            <DashboardPage />
                         </ProtectedRoute>
                     } />
                     

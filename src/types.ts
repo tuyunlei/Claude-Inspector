@@ -1,9 +1,9 @@
 
-export * from './core/domain/events';
-export * from './core/domain/sessions';
-export * from './core/domain/projects';
-export * from './core/domain/todos';
-export * from './core/domain/plans';
-export * from './core/domain/config';
-export * from './core/domain/files';
-export * from './core/domain/datastore';
+export * from './model/events';
+export * from './model/sessions';
+export * from './model/projects';
+export * from './model/todos';
+export * from './model/plans';
+export * from './model/config';
+export * from './model/files';
+export * from './model/datastore';
