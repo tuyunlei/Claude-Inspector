@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useSessionController, DateRangeOption } from '../../features/sessions/hooks/useSessionController';
 import { SessionSidebar } from '../../features/sessions/components/SessionSidebar';
@@ -11,7 +10,7 @@ import { GLOBAL_SESSIONS_ID, SYSTEM_SESSIONS_ID } from '../../core/analytics/pro
 export const GlobalHistoryPage: React.FC = () => {
   const { t } = useI18n();
   const { 
-      filteredSessions, 
+      sessions, 
       filter, 
       setFilter, 
       selectedSessionId, 
@@ -23,8 +22,6 @@ export const GlobalHistoryPage: React.FC = () => {
       handleCopy,
       handleDownload,
       copied,
-      viewMode,
-      setViewMode,
       projects,
       selectedProject,
       setSelectedProject,
@@ -86,7 +83,7 @@ export const GlobalHistoryPage: React.FC = () => {
          </div>
          
          <div className="text-xs text-slate-400 font-mono hidden md:block">
-            {filteredSessions.length} {t('history.sessionsFound')}
+            {sessions.length} {t('history.sessionsFound')}
          </div>
       </div>
 
@@ -99,13 +96,11 @@ export const GlobalHistoryPage: React.FC = () => {
             isListVisible ? "md:w-80 lg:w-96" : "md:w-0 md:overflow-hidden md:border-none"
         )}>
             <SessionSidebar 
-                sessions={filteredSessions}
+                sessions={sessions}
                 filter={filter}
                 onFilterChange={setFilter}
                 selectedId={selectedSessionId}
                 onSelect={setSelectedSessionId}
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
                 onClose={() => setIsListVisible(false)}
                 className="h-full"
             />

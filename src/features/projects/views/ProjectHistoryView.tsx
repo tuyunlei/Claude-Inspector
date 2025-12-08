@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useSessionController, DateRangeOption } from '../../sessions/hooks/useSessionController';
 import { SessionSidebar } from '../../sessions/components/SessionSidebar';
@@ -15,7 +14,7 @@ interface ProjectHistoryViewProps {
 export const ProjectHistoryView: React.FC<ProjectHistoryViewProps> = ({ project }) => {
   const { t } = useI18n();
   const { 
-      filteredSessions, 
+      sessions, 
       filter, 
       setFilter, 
       selectedSessionId, 
@@ -27,8 +26,6 @@ export const ProjectHistoryView: React.FC<ProjectHistoryViewProps> = ({ project 
       handleCopy,
       handleDownload,
       copied,
-      viewMode,
-      setViewMode,
       dateRange,
       setDateRange
   } = useSessionController({ initialProjectId: project.id });
@@ -41,11 +38,11 @@ export const ProjectHistoryView: React.FC<ProjectHistoryViewProps> = ({ project 
   return (
     <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 overflow-hidden">
         
-        {/* Project Scoped Filter Bar - Aligned with Global History Page */}
+        {/* Project Scoped Filter Bar */}
         <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 shrink-0 flex items-center justify-between gap-4 z-20 shadow-sm">
              <div className="flex items-center gap-4">
                  <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 hidden md:block whitespace-nowrap">
-                     {t('history.title')}
+                     {t('workspace.history.title')}
                  </h1>
                  <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden md:block"></div>
                  
@@ -65,7 +62,7 @@ export const ProjectHistoryView: React.FC<ProjectHistoryViewProps> = ({ project 
              </div>
              
              <div className="text-xs text-slate-400 font-mono hidden md:block">
-                {filteredSessions.length} {t('common.sessions')}
+                {sessions.length} {t('common.sessions')}
              </div>
         </div>
 
@@ -77,13 +74,11 @@ export const ProjectHistoryView: React.FC<ProjectHistoryViewProps> = ({ project 
                 isListVisible ? "md:w-80 lg:w-96" : "md:w-0 md:overflow-hidden md:border-none"
             )}>
                 <SessionSidebar 
-                    sessions={filteredSessions}
+                    sessions={sessions}
                     filter={filter}
                     onFilterChange={setFilter}
                     selectedId={selectedSessionId}
                     onSelect={setSelectedSessionId}
-                    viewMode={viewMode}
-                    onViewModeChange={setViewMode}
                     onClose={() => setIsListVisible(false)}
                     className="h-full"
                 />

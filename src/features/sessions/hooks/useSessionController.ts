@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useData } from '../../../app/App';
@@ -6,7 +5,6 @@ import { selectSessionList, selectSessionById } from '../../../core/selectors/se
 import { selectProjects } from '../../../core/selectors/projects';
 import { sessionToMarkdown, downloadTextFile, copyMarkdownToClipboard } from '../../../core/exports/sessionMarkdown';
 import { buildRenderEvents } from '../viewModel';
-import { SessionStoryRole } from '../../../core/domain/sessions';
 
 interface UseSessionControllerProps {
     initialProjectId?: string;
@@ -21,7 +19,6 @@ export const useSessionController = (props?: UseSessionControllerProps) => {
   const [filter, setFilter] = useState('');
   const [inSessionQuery, setInSessionQuery] = useState('');
   const [copied, setCopied] = useState(false);
-  const [viewMode, setViewMode] = useState<SessionStoryRole>('chat');
   const [dateRange, setDateRange] = useState<DateRangeOption>('all');
   
   // URL State / Props logic
@@ -55,7 +52,7 @@ export const useSessionController = (props?: UseSessionControllerProps) => {
      }
   };
 
-  const filteredSessions = useMemo(() => {
+  const visibleSessions = useMemo(() => {
     // 1. Calculate Date Cutoff
     let cutoff = 0;
     if (dateRange !== 'all') {
@@ -66,9 +63,6 @@ export const useSessionController = (props?: UseSessionControllerProps) => {
     }
 
     const result = sessionList.filter(s => {
-        // Story Role Filter
-        if (s.storyRole !== viewMode) return false;
-        
         // Project Filter
         if (selectedProject) {
             if (s.primaryProjectId !== selectedProject) return false;
@@ -86,7 +80,7 @@ export const useSessionController = (props?: UseSessionControllerProps) => {
     });
 
     return result;
-  }, [sessionList, filter, selectedProject, viewMode, dateRange]);
+  }, [sessionList, filter, selectedProject, dateRange]);
 
   const selectedSession = useMemo(() => {
     if (!selectedSessionId) return undefined;
@@ -107,20 +101,6 @@ export const useSessionController = (props?: UseSessionControllerProps) => {
     if (selectedSession) {
         setInSessionQuery('');
     }
-  }, [selectedSession]);
-
-  const handleSetViewMode = (newMode: SessionStoryRole) => {
-    setViewMode(newMode);
-    if (selectedSession && selectedSession.storyRole !== newMode) {
-        setSelectedSessionId(null);
-    }
-  };
-
-  useEffect(() => {
-      if (selectedSession && selectedSession.storyRole !== viewMode) {
-          setViewMode(selectedSession.storyRole);
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSession]);
 
   const handleDownload = () => {
@@ -146,7 +126,7 @@ export const useSessionController = (props?: UseSessionControllerProps) => {
       selectedProject,
       setSelectedProject,
       projects,
-      filteredSessions,
+      sessions: visibleSessions,
       selectedSessionId,
       setSelectedSessionId,
       selectedSession,
@@ -156,8 +136,6 @@ export const useSessionController = (props?: UseSessionControllerProps) => {
       handleDownload,
       handleCopy,
       copied,
-      viewMode,
-      setViewMode: handleSetViewMode,
       dateRange,
       setDateRange
   };

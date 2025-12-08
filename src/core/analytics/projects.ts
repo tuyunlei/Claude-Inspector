@@ -6,6 +6,20 @@ export const UNKNOWN_PROJECT_PATH = 'Unknown Project';
 export const GLOBAL_SESSIONS_ID = '__global_sessions__';
 export const SYSTEM_SESSIONS_ID = '__system_sessions__';
 
+/**
+ * Decodes a Claude CLI project directory name into a readable path.
+ * Rule: Claude replaces both '/' and '.' with '-'.
+ * Example: -Users-username-projects-my-app -> /Users/username/projects/my-app
+ */
+export function decodeProjectName(encodedName: string): string {
+  if (!encodedName) return '';
+  
+  // Heuristic: If it looks like a standard encoded path (starts with -), treat as path.
+  // We simply replace dashes with slashes. This isn't perfect (dots also become slashes),
+  // but provides the most readable approximation of the original path.
+  return encodedName.replace(/-/g, '/');
+}
+
 export function calculateProjectStats(store: DataStore) {
   const map = new Map<string, ProjectStats>();
 
@@ -42,8 +56,12 @@ export function calculateProjectStats(store: DataStore) {
         name = 'System Sessions';
         groupType = 'system';
     } else {
-        // Standard Project: ID is the path
-        name = projectId; 
+        // Workspace Project: The ID is the directory name (e.g. -Users-foo)
+        // The Name is the decoded path (e.g. /Users/foo)
+        // If the Name equals the ID, it means we didn't decode it (legacy), so check if we can decode it now
+        if (name === projectId) {
+            name = decodeProjectName(projectId);
+        }
     }
 
     const entry = getEntry(projectId, name, groupType);

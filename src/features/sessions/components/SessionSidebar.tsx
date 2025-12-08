@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Search, FolderGit2, MonitorCog, History, MessageSquare, Terminal, Activity, PanelLeftClose } from 'lucide-react';
 import { cn, formatDate } from '../../../shared/utils';
@@ -12,20 +11,17 @@ interface SessionSidebarProps {
     onFilterChange: (val: string) => void;
     selectedId: string | null;
     onSelect: (id: string) => void;
-    viewMode: SessionStoryRole;
-    onViewModeChange: (mode: SessionStoryRole) => void;
     className?: string;
     onClose?: () => void;
 }
 
 export const SessionSidebar: React.FC<SessionSidebarProps> = ({ 
     sessions, filter, onFilterChange, selectedId, onSelect,
-    viewMode, onViewModeChange, className, onClose
+    className, onClose
 }) => {
     const { t } = useI18n();
 
-    const formatTokenCount = (num: number, kind: string) => {
-        if (kind === 'file-history-only') return 'N/A';
+    const formatTokenCount = (num: number) => {
         if (num >= 1000000) return (num / 1000000).toFixed(1) + 'm';
         if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
         return num.toString();
@@ -55,87 +51,48 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
         return raw;
     };
 
+    const getRoleIcon = (role: SessionStoryRole) => {
+        switch (role) {
+            case 'chat': return <MessageSquare size={14} className="text-blue-500" />;
+            case 'code-activity': return <Terminal size={14} className="text-purple-500" />;
+            case 'system': return <Activity size={14} className="text-slate-400" />;
+        }
+    };
+
     return (
         <div className={cn("flex flex-col h-full w-full", className)}>
             <div className="p-4 border-b border-slate-200 dark:border-slate-800 space-y-3 bg-white dark:bg-slate-900 shrink-0">
                 
-                {/* View Mode Tabs */}
+                {/* Search & Collapse Header */}
                 <div className="flex items-center gap-2">
-                    <div className="flex-1 flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                        {[
-                            { id: 'chat', label: t('sessions.views.chat'), icon: MessageSquare },
-                            { id: 'code-activity', label: t('sessions.views.code'), icon: Terminal },
-                            { id: 'system', label: t('sessions.views.system'), icon: Activity }
-                        ].map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => onViewModeChange(tab.id as SessionStoryRole)}
-                                className={cn(
-                                    "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[10px] sm:text-xs font-medium transition-all",
-                                    viewMode === tab.id 
-                                        ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm" 
-                                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-                                )}
-                                title={tab.label}
-                            >
-                                <tab.icon size={14} className="opacity-80" />
-                                <span className="hidden sm:inline">{tab.label}</span>
-                            </button>
-                        ))}
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
+                        <input 
+                            type="text" 
+                            placeholder={t('sessions.searchPlaceholder')} 
+                            className="w-full pl-9 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none text-slate-900 dark:text-slate-100 placeholder:text-slate-500 transition-shadow"
+                            value={filter}
+                            onChange={(e) => onFilterChange(e.target.value)}
+                        />
                     </div>
                     {onClose && (
                         <button 
                             onClick={onClose}
-                            className="hidden md:flex p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
-                            title="Collapse List"
+                            className="hidden md:flex p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors bg-slate-100 dark:bg-slate-800 rounded-lg"
+                            title={t('sidebar.collapse')}
                         >
                             <PanelLeftClose size={18} />
                         </button>
                     )}
                 </div>
-
-                {/* Text Filter */}
-                <div className="relative">
-                    <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
-                    <input 
-                        type="text" 
-                        placeholder={t('sessions.searchPlaceholder')} 
-                        className="w-full pl-9 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none text-slate-900 dark:text-slate-100 placeholder:text-slate-500 transition-shadow"
-                        value={filter}
-                        onChange={(e) => onFilterChange(e.target.value)}
-                    />
-                </div>
             </div>
+
             <div className="flex-1 overflow-y-auto bg-white dark:bg-slate-900">
                 {sessions.map((session) => {
                     const projectDisplay = getProjectDisplayName(session);
                     const pathCount = session.pathUsages?.length || 1;
                     const safeTitle = getSafeTitle(session);
-
-                    // Determine what detail to show based on view mode
-                    let metaDetail: React.ReactNode;
-                    
-                    if (viewMode === 'code-activity') {
-                         metaDetail = (
-                            <div className="flex items-center gap-2">
-                                <span>{session.fileSnapshotCount} {t('sidebar.snapshots')}</span>
-                            </div>
-                         );
-                    } else if (viewMode === 'system') {
-                         metaDetail = <span>{session.messageCount} {t('sidebar.events')}</span>;
-                    } else {
-                         // Chat Mode
-                         metaDetail = (
-                             <div className="flex items-center gap-2">
-                                <span>{session.messageCount} {t('sidebar.msgs')}</span>
-                                {session.totalTokens > 0 && (
-                                    <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 dark:text-slate-400 font-medium">
-                                        {formatTokenCount(session.totalTokens, 'chat')} {t('sessions.tok')}
-                                    </span>
-                                )}
-                             </div>
-                         );
-                    }
+                    const roleIcon = getRoleIcon(session.storyRole);
 
                     return (
                         <div 
@@ -145,18 +102,24 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
                                 "p-4 border-b border-slate-100 dark:border-slate-800 cursor-pointer transition-colors",
                                 selectedId === session.id 
                                     ? "bg-orange-50 dark:bg-orange-900/20 border-l-4 border-l-orange-500" 
-                                    : "border-l-4 border-l-transparent hover:bg-slate-50 dark:hover:bg-slate-800"
+                                    : "border-l-4 border-l-transparent hover:bg-slate-50 dark:hover:bg-slate-800",
+                                session.storyRole === 'system' && selectedId !== session.id && "opacity-80 grayscale-[0.5]"
                             )}
                         >
-                            <div className="flex items-start justify-between gap-2 mb-1">
-                                <h4 className={cn("font-medium text-sm line-clamp-2", selectedId === session.id ? "text-orange-900 dark:text-orange-100" : "text-slate-800 dark:text-slate-200")}>
-                                    {safeTitle}
-                                </h4>
+                            <div className="flex items-start justify-between gap-2 mb-1.5">
+                                <div className="flex items-start gap-2 min-w-0">
+                                    <div className="mt-0.5 shrink-0 opacity-80">{roleIcon}</div>
+                                    <h4 className={cn(
+                                        "font-medium text-sm line-clamp-2 leading-snug", 
+                                        selectedId === session.id ? "text-orange-900 dark:text-orange-100" : "text-slate-800 dark:text-slate-200"
+                                    )}>
+                                        {safeTitle}
+                                    </h4>
+                                </div>
                             </div>
                             
-                            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-2">
-                                {viewMode === 'system' ? <MonitorCog size={12} className="shrink-0"/> : <FolderGit2 size={12} className="shrink-0" />}
-                                <span className="truncate" title={session.primaryProjectPath || ''}>
+                            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-2 pl-6">
+                                <span className="truncate max-w-[150px]" title={session.primaryProjectPath || ''}>
                                     {projectDisplay}
                                 </span>
                                 {pathCount > 1 && (
@@ -165,9 +128,21 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
                                     </span>
                                 )}
                             </div>
-                            <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
+
+                            <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 pl-6">
                                 <span>{formatDate(session.timestamp)}</span>
-                                {metaDetail}
+                                <div className="flex items-center gap-2">
+                                    {session.hasFileSnapshots && (
+                                        <span title={t('sidebar.snapshots')} className="flex items-center gap-0.5">
+                                            <FolderGit2 size={10} /> {session.fileSnapshotCount}
+                                        </span>
+                                    )}
+                                    {session.hasChatMessages && session.totalTokens > 0 && (
+                                        <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 dark:text-slate-400 font-medium">
+                                            {formatTokenCount(session.totalTokens)}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     );

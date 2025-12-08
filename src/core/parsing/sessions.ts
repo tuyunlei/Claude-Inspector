@@ -3,12 +3,13 @@ import { DataStore } from '../domain/datastore';
 import { FileEntry } from '../domain/files';
 import { ClaudeEvent } from '../domain/events';
 import { SessionKind, SessionSummary, SessionPathUsage, SessionStoryRole } from '../domain/sessions';
-import { UNKNOWN_PROJECT_PATH, GLOBAL_SESSIONS_ID, SYSTEM_SESSIONS_ID } from '../analytics/projects';
+import { UNKNOWN_PROJECT_PATH, GLOBAL_SESSIONS_ID, SYSTEM_SESSIONS_ID, decodeProjectName } from '../analytics/projects';
 
 // Internal intermediate structure
 interface ParsedSessionSnapshot {
   id: string;
-  projectPath: string; // Defaults to UNKNOWN_PROJECT_PATH if missing
+  directoryId: string | null; // The folder name in ~/.claude/projects/
+  projectPath: string; // The display path (decoded from directoryId or fallback to cwd)
   kind: SessionKind;
   timestamp: string; // ISO
   firstEventAt: string;
@@ -100,6 +101,21 @@ export async function processSessions(fileMap: Map<string, FileEntry>, store: Da
     const entry = fileMap.get(path);
     if (!entry) continue;
     
+    // --- Project Identification Logic ---
+    // Extract project ID from directory structure: ~/.claude/projects/<ENCODED_NAME>/session.jsonl
+    const parts = path.split('/');
+    const projectsIndex = parts.lastIndexOf('projects');
+    
+    let directoryId: string | null = null;
+    let decodedPath: string | null = null;
+
+    if (projectsIndex !== -1 && parts.length > projectsIndex + 2) {
+        // We have a subfolder after 'projects'
+        directoryId = parts[projectsIndex + 1];
+        decodedPath = decodeProjectName(directoryId);
+    }
+    // ------------------------------------
+
     let text = '';
     try {
         text = await entry.text();
@@ -113,7 +129,7 @@ export async function processSessions(fileMap: Map<string, FileEntry>, store: Da
     
     let totalTokens = 0;
     const modelCount: Record<string, number> = {};
-    let cwd = '';
+    let lastCwd = '';
     let sessionId = '';
     
     // Extract session ID from filename as backup
@@ -140,7 +156,7 @@ export async function processSessions(fileMap: Map<string, FileEntry>, store: Da
           raw: json,
         };
 
-        if (event.cwd) cwd = event.cwd;
+        if (event.cwd) lastCwd = event.cwd;
         if (event.sessionId) sessionId = event.sessionId;
 
         // Token & Model Stats
@@ -198,23 +214,23 @@ export async function processSessions(fileMap: Map<string, FileEntry>, store: Da
           storyRole = 'system';
       }
 
+      // Finalize Project Info
+      // Priority: Decoded directory path -> Last seen CWD -> Unknown
+      const effectiveProjectPath = decodedPath || lastCwd || UNKNOWN_PROJECT_PATH;
+
       // Generate Display Title
       let display = generateDisplayForSession({
           storyRole,
           sessionId: effectiveSessionId,
           events,
-          projectPath: cwd || UNKNOWN_PROJECT_PATH,
+          projectPath: effectiveProjectPath,
           fileSnapshotCount
       });
 
-      // Special case: If original JSON had a specific display field, allow it to override 
-      // ONLY if we didn't extract a meaningful chat title (i.e. if we fell back to default).
-      // But typically we trust our generation. If events[0].raw.display exists, it's usually from history.jsonl injection,
-      // which is handled in processHistory separately. 
-
       snapshots.push({
         id: effectiveSessionId,
-        projectPath: cwd || UNKNOWN_PROJECT_PATH,
+        directoryId, // The folder name (e.g. -Users-foo)
+        projectPath: effectiveProjectPath,
         kind,
         timestamp: events[0].timestamp,
         firstEventAt: events[0].timestamp,
@@ -241,19 +257,30 @@ export async function processSessions(fileMap: Map<string, FileEntry>, store: Da
   store.sessions.sort((a, b) => b.timestamp - a.timestamp);
 }
 
-function resolveProjectId(path: string, kind: SessionKind): string | null {
-    if (path === UNKNOWN_PROJECT_PATH) {
-        if (kind === 'chat') return GLOBAL_SESSIONS_ID;
-        if (kind === 'file-history-only') return SYSTEM_SESSIONS_ID;
-        return null; // Truly unknown/other
+function resolveProjectId(snapshot: ParsedSessionSnapshot): string | null {
+    // 1. If we have a physical directory ID, that IS the project.
+    if (snapshot.directoryId) {
+        return snapshot.directoryId;
     }
-    return path; // For standard projects, ID is the path
+
+    // 2. If no directory ID (e.g. file was in root of projects/), fallback to legacy logic
+    // or standard special buckets.
+    const path = snapshot.projectPath;
+    
+    if (path === UNKNOWN_PROJECT_PATH) {
+        if (snapshot.kind === 'chat') return GLOBAL_SESSIONS_ID;
+        if (snapshot.kind === 'file-history-only') return SYSTEM_SESSIONS_ID;
+        return null;
+    }
+    
+    // Fallback: use the path itself as ID (legacy behavior for files without parent dir)
+    return path; 
 }
 
 function buildCanonicalSessions(rawSessions: ParsedSessionSnapshot[]): SessionSummary[] {
     const byId = new Map<string, ParsedSessionSnapshot[]>();
     
-    // Group by ID
+    // Group by Session ID
     for (const snap of rawSessions) {
         if (!snap.id) continue;
         const arr = byId.get(snap.id) ?? [];
@@ -266,46 +293,28 @@ function buildCanonicalSessions(rawSessions: ParsedSessionSnapshot[]): SessionSu
     for (const [id, snapshots] of byId) {
         if (snapshots.length === 0) continue;
 
-        // 1. Build Path Usages
-        const pathUsageMap = new Map<string, SessionPathUsage>();
-        
+        // 1. Determine Primary Project ID
+        // We look for the most frequent Project ID associated with this session's snapshots.
+        // In the new model, this is driven by the directory the file lives in.
+        const projectCounts = new Map<string, number>();
+        let bestProjectId: string | null = null;
+        let maxCount = -1;
+
         for (const snap of snapshots) {
-            const path = snap.projectPath;
-            const existing = pathUsageMap.get(path);
-            const projectId = resolveProjectId(path, snap.kind);
-
-            if (!existing) {
-                pathUsageMap.set(path, {
-                    path,
-                    projectId,
-                    firstEventAt: snap.firstEventAt,
-                    lastEventAt: snap.lastEventAt,
-                    messageCount: snap.messageCount
-                });
-            } else {
-                if (snap.firstEventAt < existing.firstEventAt) existing.firstEventAt = snap.firstEventAt;
-                if (snap.lastEventAt > existing.lastEventAt) existing.lastEventAt = snap.lastEventAt;
-                existing.messageCount += snap.messageCount;
+            const pid = resolveProjectId(snap);
+            if (pid) {
+                const count = (projectCounts.get(pid) || 0) + 1;
+                projectCounts.set(pid, count);
+                if (count > maxCount) {
+                    maxCount = count;
+                    bestProjectId = pid;
+                }
             }
         }
-
-        const pathUsages = Array.from(pathUsageMap.values());
-
-        // 2. Select Primary Project (Ownership)
-        const nonUnknown = pathUsages.filter(u => u.path !== UNKNOWN_PROJECT_PATH);
-        const candidates = nonUnknown.length > 0 ? nonUnknown : pathUsages;
         
-        let primaryUsage: SessionPathUsage | undefined;
-        for (const usage of candidates) {
-            if (!primaryUsage || usage.messageCount > primaryUsage.messageCount) {
-                primaryUsage = usage;
-            }
-        }
+        const primaryProjectId = bestProjectId;
 
-        const primaryProjectId = primaryUsage?.projectId ?? null;
-        const primaryProjectPath = primaryUsage?.path ?? UNKNOWN_PROJECT_PATH;
-
-        // 3. Select Base Snapshot for events/tokens (Latest activity preferred)
+        // 2. Select Base Snapshot (Latest activity preferred)
         let baseSnapshot: ParsedSessionSnapshot | undefined;
         for (const snap of snapshots) {
             if (!baseSnapshot) {
@@ -319,17 +328,48 @@ function buildCanonicalSessions(rawSessions: ParsedSessionSnapshot[]): SessionSu
 
         if (!baseSnapshot) continue;
 
-        // 4. Merge Feature Flags (Union)
+        // 3. Build Path Usages (still useful for history of CWDs within the project)
+        // Note: usage.projectId might differ if we moved files, but we map them to current understanding
+        const pathUsageMap = new Map<string, SessionPathUsage>();
+        for (const snap of snapshots) {
+            // Use the snapshot's calculated project path (decoded or cwd)
+            const path = snap.projectPath;
+            const existing = pathUsageMap.get(path);
+            const pid = resolveProjectId(snap);
+
+            if (!existing) {
+                pathUsageMap.set(path, {
+                    path,
+                    projectId: pid,
+                    firstEventAt: snap.firstEventAt,
+                    lastEventAt: snap.lastEventAt,
+                    messageCount: snap.messageCount
+                });
+            } else {
+                if (snap.firstEventAt < existing.firstEventAt) existing.firstEventAt = snap.firstEventAt;
+                if (snap.lastEventAt > existing.lastEventAt) existing.lastEventAt = snap.lastEventAt;
+                existing.messageCount += snap.messageCount;
+            }
+        }
+        const pathUsages = Array.from(pathUsageMap.values());
+
+        // 4. Merge Feature Flags
         const hasChatMessages = snapshots.some(s => s.hasChatMessages);
         const hasFileSnapshots = snapshots.some(s => s.hasFileSnapshots);
         const hasToolCalls = snapshots.some(s => s.hasToolCalls);
         const fileSnapshotCount = snapshots.reduce((acc, s) => acc + s.fileSnapshotCount, 0);
 
-        // Re-evaluate Story Role based on merged data
         let storyRole: SessionStoryRole;
         if (hasChatMessages) storyRole = 'chat';
         else if (hasFileSnapshots) storyRole = 'code-activity';
         else storyRole = 'system';
+
+        // Use the path associated with the primary project ID if available, otherwise base snapshot
+        let primaryProjectPath = baseSnapshot.projectPath;
+        if (primaryProjectId && primaryProjectId.startsWith('-')) {
+             // If ID is encoded directory, decode it for display
+             primaryProjectPath = decodeProjectName(primaryProjectId);
+        }
 
         result.push({
             id: baseSnapshot.id,
@@ -357,7 +397,7 @@ function buildCanonicalSessions(rawSessions: ParsedSessionSnapshot[]): SessionSu
 }
 
 export async function processHistory(fileMap: Map<string, FileEntry>, store: DataStore) {
-    const rootDir = Array.from(fileMap.keys())[0]?.split('/')[0];
+    const rootDir = Array.from(fileMap.keys()).filter(k => k.endsWith('history.jsonl'))[0]?.split('/history.jsonl')[0] || '';
     const findFile = (name: string) => fileMap.get(name) || (rootDir ? fileMap.get(`${rootDir}/${name}`) : undefined);
     
     const historyEntry = findFile('history.jsonl');
@@ -374,18 +414,22 @@ export async function processHistory(fileMap: Map<string, FileEntry>, store: Dat
   
               const historyTime = new Date(item.timestamp).getTime();
   
+              // Attempt to match history items to sessions
               const matchedSession = store.sessions.find(s => {
-                  const p2 = (item.project || '').trim().replace(/\/$/, '');
-                  const hasPathMatch = s.pathUsages.some(u => u.path.trim().replace(/\/$/, '') === p2);
-                  if (!hasPathMatch) return false;
-  
+                  // Fuzzy match logic
                   const timeDiff = Math.abs(s.timestamp - historyTime);
-                  return timeDiff < 5000;
+                  if (timeDiff > 5000) return false;
+                  
+                  // Match project path if possible (normalized)
+                  // item.project might be encoded OR decoded depending on CLI version, 
+                  // but usually it's the readable path.
+                  const pNorm = item.project.trim().replace(/\/$/, '');
+                  const sNorm = (s.primaryProjectPath || '').trim().replace(/\/$/, '');
+                  
+                  return pNorm === sNorm || (s.primaryProjectId === item.project);
               });
   
               if (matchedSession) {
-                  // Only overwrite if the history display is meaningful and not just a UUID
-                  // (Assuming history.jsonl generally contains user-intent titles)
                   if (item.display) {
                       matchedSession.display = item.display;
                   }
