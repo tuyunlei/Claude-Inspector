@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from 'react';
-import { Search, FolderGit2, MessageSquare, Download, Copy, Check, Clock, Hash, ChevronDown, ChevronRight, History, PanelLeftOpen, FileText, ArrowLeft, AlertCircle, Activity, MonitorCog } from 'lucide-react';
+
+import React, { useState } from 'react';
+import { Search, FolderGit2, MessageSquare, Download, Copy, Check, Clock, Hash, ChevronDown, ChevronRight, History, PanelLeftOpen, ArrowLeft, AlertCircle, Activity } from 'lucide-react';
 import { useI18n } from '../../../shared/i18n';
 import { formatDate } from '../../../shared/utils';
 import { SessionSummary, ClaudeEvent } from '../../../types';
-import { ChatBubble } from './ChatBubble';
+import { EventRow } from './EventRow';
 
 interface SessionDetailProps {
     session: SessionSummary | undefined;
@@ -16,97 +17,6 @@ interface SessionDetailProps {
     onBack?: () => void;
     onExpandList?: () => void;
 }
-
-// --- Helper Components for Unified Timeline ---
-
-const SystemEventBlock: React.FC<{ event: ClaudeEvent }> = ({ event }) => {
-    return (
-        <div className="flex items-start gap-3 pl-4 py-2 border-l-[3px] border-l-slate-200 dark:border-l-slate-700 opacity-70 hover:opacity-100 transition-opacity">
-            <div className="mt-0.5">
-                <MonitorCog size={14} className="text-slate-400" />
-            </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400">
-                <span className="font-mono font-medium text-slate-600 dark:text-slate-300 mr-2">{event.type}</span>
-                <span className="opacity-70">{new Date(event.timestamp).toLocaleTimeString()}</span>
-            </div>
-        </div>
-    );
-};
-
-const FileSnapshotBlock: React.FC<{ event: ClaudeEvent }> = ({ event }) => {
-    const { t } = useI18n();
-    const [expanded, setExpanded] = useState(false);
-    const snapshot = event.raw?.snapshot;
-    const files = snapshot?.trackedFileBackups ? Object.keys(snapshot.trackedFileBackups) : [];
-    const fileCount = files.length;
-    const time = new Date(event.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-    // Preview: first 2 files
-    const previewFiles = files.slice(0, 2);
-    const remaining = Math.max(0, fileCount - 2);
-
-    return (
-        <div className="mb-4 pl-4 border-l-[3px] border-l-purple-300 dark:border-l-purple-700">
-            <div className="bg-white dark:bg-slate-900 border border-purple-100 dark:border-purple-900/30 rounded-lg shadow-sm overflow-hidden">
-                <div 
-                    className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                    onClick={() => setExpanded(!expanded)}
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="p-1.5 bg-purple-100 dark:bg-purple-900/40 rounded text-purple-600 dark:text-purple-300">
-                            <FolderGit2 size={16} />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{t('sessions.fileSnapshot')}</span>
-                                <span className="text-xs text-slate-400 font-mono">{time}</span>
-                            </div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
-                                <span className="font-medium">{fileCount} files</span>
-                                <span className="text-slate-300 dark:text-slate-600">|</span>
-                                {previewFiles.map(f => (
-                                    <span key={f} className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-[10px] truncate max-w-[150px]">{f}</span>
-                                ))}
-                                {remaining > 0 && <span className="text-[10px] opacity-70">+{remaining} more</span>}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="text-slate-400">
-                        {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                    </div>
-                </div>
-
-                {expanded && (
-                    <div className="border-t border-purple-100 dark:border-purple-900/30 bg-purple-50/30 dark:bg-purple-900/10 p-4">
-                        <div className="flex flex-col gap-3">
-                            <details className="group/raw">
-                                <summary className="text-[10px] text-slate-400 hover:text-purple-600 cursor-pointer select-none flex items-center gap-1 w-fit mb-2">
-                                    <FileText size={12} />
-                                    {t('sessions.viewRawSnapshot')}
-                                </summary>
-                                <pre className="p-3 bg-slate-50 dark:bg-slate-950 rounded border border-slate-200 dark:border-slate-800 text-[10px] font-mono text-slate-600 dark:text-slate-400 overflow-x-auto max-h-60 overflow-y-auto">
-                                    {JSON.stringify(snapshot, null, 2)}
-                                </pre>
-                            </details>
-                            
-                            <div className="space-y-1">
-                                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{t('sessions.trackedFiles')}</div>
-                                {files.map((f, i) => (
-                                    <div key={i} className="flex items-center gap-2 text-xs font-mono text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 px-2 py-1.5 rounded">
-                                        <FileText size={12} className="text-slate-400" />
-                                        {f}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-// -------------------------------------------------------
 
 export const SessionDetail: React.FC<SessionDetailProps> = ({ 
     session, events, query, onQueryChange, onCopy, onDownload, isCopied, onBack, onExpandList
@@ -247,45 +157,25 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({
     );
 
     const renderTimeline = () => (
-        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-6 scroll-smooth space-y-6">
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-6 scroll-smooth">
             
             {/* Start of Timeline Marker */}
-            <div className="flex items-center justify-center gap-3 opacity-50 mb-4">
+            <div className="flex items-center justify-center gap-3 opacity-50 mb-8">
                 <div className="h-px w-12 bg-slate-300 dark:bg-slate-600"></div>
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Start of Session</span>
                 <div className="h-px w-12 bg-slate-300 dark:bg-slate-600"></div>
             </div>
 
             {events.length > 0 ? (
-                <div className="w-full space-y-2">
-                    {events.map((event, idx) => {
-                        // 1. Chat Message
-                        if (event.message) {
-                            const isFirst = idx === 0 || events[idx - 1].message?.role !== event.message?.role;
-                            return (
-                                <ChatBubble 
-                                    key={event.uuid || idx} 
-                                    event={event} 
-                                    query={query} 
-                                    index={idx} 
-                                    isFirstInSequence={isFirst}
-                                />
-                            );
-                        }
-
-                        // 2. File Snapshot
-                        if (event.type === 'file-history-snapshot') {
-                            return <FileSnapshotBlock key={event.uuid || idx} event={event} />;
-                        }
-
-                        // 3. System / Other Events (ignore tool results/uses that were already merged into messages)
-                        // Note: viewModel.ts merges tool_use/result into messages, but if any standalone tool event remains, handled here.
-                        if (event.type !== 'tool_use' && event.type !== 'tool_result') {
-                             return <SystemEventBlock key={event.uuid || idx} event={event} />;
-                        }
-                        
-                        return null;
-                    })}
+                <div className="w-full space-y-1">
+                    {events.map((event, idx) => (
+                        <EventRow 
+                            key={event.uuid || idx} 
+                            event={event} 
+                            query={query} 
+                            index={idx} 
+                        />
+                    ))}
                 </div>
             ) : (
                 <div className="text-center py-12 text-slate-400 text-sm italic border border-dashed border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/20">
