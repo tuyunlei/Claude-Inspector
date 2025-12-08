@@ -1,14 +1,14 @@
 import React, {
   useRef,
   useEffect,
-  useCallback,
   useState,
-  useMemo,
   ReactElement,
 } from 'react';
 import {
-  VariableSizeList as List,
-  ListChildComponentProps,
+  List,
+  RowComponentProps,
+  useDynamicRowHeight,
+  useListRef,
 } from 'react-window';
 import { Search, Activity, PanelLeftOpen } from 'lucide-react';
 import { useI18n } from '../../i18n';
@@ -37,74 +37,32 @@ function getRowKind(
   return { kind: 'event', eventIndex: index - 1 };
 }
 
-// -- Dynamic Height Hook --
-const useRowMeasurement = (
-  index: number,
-  setSize: (index: number, size: number) => void,
-) => {
-  const rowRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const element = rowRef.current;
-    if (!element) return;
-
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        // Use borderBoxSize if available for better accuracy, fallback to contentRect
-        const height =
-          (entry as any).borderBoxSize?.[0]?.blockSize ??
-          entry.contentRect.height;
-        if (height && height > 0) {
-          setSize(index, height);
-        }
-      }
-    });
-
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [index, setSize]);
-
-  return rowRef;
-};
-
-// -- Row Data Interface --
+// -- Row Data Interface (v2: passed via rowProps, destructured directly in component) --
 interface RowData {
   events: ClaudeEvent[];
   query: string;
   hasSystemFooter: boolean;
-  setSize: (index: number, size: number) => void;
   t: (key: string, args?: Record<string, string>) => string;
 }
 
-// -- Row Component --
-function TimelineRow(props: ListChildComponentProps<RowData>): ReactElement {
-  const {
-    index,
-    style,
-    data,
-  } = props;
-
-  const {
-    events,
-    query,
-    hasSystemFooter,
-    setSize,
-    t,
-  } = data;
-
+// -- Row Component (v2: props are destructured directly, not from data) --
+function TimelineRow({
+  index,
+  style,
+  events,
+  query,
+  hasSystemFooter,
+  t,
+}: RowComponentProps<RowData>): ReactElement {
   const { kind, eventIndex } = getRowKind(index, events.length, hasSystemFooter);
-  const rowRef = useRowMeasurement(index, setSize);
 
-  // Note: We use a wrapper div with `style` (from react-window) and an inner div with `ref` (for ResizeObserver).
-  // This allows the inner content to grow naturally and be measured, even if the outer container has a fixed height temporarily.
+  // v2: Row elements are automatically observed by useDynamicRowHeight's observeRowElements
+  // We add data-index attribute for the observer to identify rows
 
   if (kind === 'start') {
     return (
-      <div style={style}>
-        <div
-          ref={rowRef}
-          className="px-4 md:px-6 py-8 flex items-center justify-center gap-3 opacity-50"
-        >
+      <div style={style} data-index={index}>
+        <div className="px-4 md:px-6 py-8 flex items-center justify-center gap-3 opacity-50">
           <div className="h-px w-12 bg-slate-300 dark:bg-slate-600" />
           <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">
             Start of Session
@@ -117,11 +75,8 @@ function TimelineRow(props: ListChildComponentProps<RowData>): ReactElement {
 
   if (kind === 'end') {
     return (
-      <div style={style}>
-        <div
-          ref={rowRef}
-          className="px-4 md:px-6 py-8 flex items-center justify-center gap-3 opacity-30"
-        >
+      <div style={style} data-index={index}>
+        <div className="px-4 md:px-6 py-8 flex items-center justify-center gap-3 opacity-30">
           <div className="h-px w-12 bg-slate-300 dark:bg-slate-600" />
           <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">
             End of Session
@@ -134,11 +89,8 @@ function TimelineRow(props: ListChildComponentProps<RowData>): ReactElement {
 
   if (kind === 'footer') {
     return (
-      <div style={style}>
-        <div
-          ref={rowRef}
-          className="px-4 md:px-6 py-8 flex items-center justify-center"
-        >
+      <div style={style} data-index={index}>
+        <div className="px-4 md:px-6 py-8 flex items-center justify-center">
           <div className="bg-slate-100 dark:bg-slate-900 p-6 rounded-lg text-center text-xs text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 max-w-lg mx-auto w-full">
             <Activity size={24} className="mx-auto mb-2 text-slate-400" />
             <p className="mb-2 font-medium">{t('sessions.systemView.description')}</p>
@@ -151,16 +103,15 @@ function TimelineRow(props: ListChildComponentProps<RowData>): ReactElement {
 
   // Event Row
   if (eventIndex == null || eventIndex < 0 || eventIndex >= events.length) {
-    return <div style={style} ref={rowRef} />;
+    return <div style={style} data-index={index} />;
   }
 
   const event = events[eventIndex];
 
   return (
-    <div style={style}>
-      <div ref={rowRef} className="px-4 md:px-6 w-full">
+    <div style={style} data-index={index}>
+      <div className="px-4 md:px-6 w-full">
         <EventRow
-          key={event.uuid || eventIndex}
           event={event}
           query={query}
           index={eventIndex}
@@ -179,8 +130,7 @@ export const SessionDetailTimeline: React.FC<SessionDetailTimelineProps> = ({
   showSystemFooter,
 }) => {
   const { t } = useI18n();
-  const listRef = useRef<List>(null);
-  const sizeMapRef = useRef<Map<number, number>>(new Map());
+  const listRef = useListRef();
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
@@ -188,10 +138,13 @@ export const SessionDetailTimeline: React.FC<SessionDetailTimelineProps> = ({
   const baseRowCount = events.length + 2; // start + end
   const rowCount = hasSystemFooter ? baseRowCount + 1 : baseRowCount;
 
-  // Constants for default heights
-  const MARKER_HEIGHT = 80;
-  const FOOTER_HEIGHT = 180;
+  // v2: Use useDynamicRowHeight hook for dynamic row heights
+  // The key parameter ensures cache is reset when events change
   const DEFAULT_EVENT_HEIGHT = 100;
+  const dynamicRowHeight = useDynamicRowHeight({
+    defaultRowHeight: DEFAULT_EVENT_HEIGHT,
+    key: events.length, // Reset cache when events change
+  });
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -207,46 +160,13 @@ export const SessionDetailTimeline: React.FC<SessionDetailTimelineProps> = ({
     return () => observer.disconnect();
   }, []);
 
-  // Reset cache when events change
-  useEffect(() => {
-    sizeMapRef.current.clear();
-    listRef.current?.resetAfterIndex?.(0);
-  }, [events]);
-
-  const setSize = useCallback((index: number, size: number) => {
-    const map = sizeMapRef.current;
-    const prev = map.get(index) ?? 0;
-    // Only update if difference is significant to avoid thrashing
-    if (Math.abs(prev - size) > 0.5) {
-      map.set(index, size);
-      listRef.current?.resetAfterIndex?.(index);
-    }
-  }, []);
-
-  const getRowHeight = useCallback(
-    (index: number) => {
-      const { kind } = getRowKind(index, events.length, hasSystemFooter);
-      const cached = sizeMapRef.current.get(index);
-
-      if (cached !== undefined) return cached;
-
-      if (kind === 'start' || kind === 'end') return MARKER_HEIGHT;
-      if (kind === 'footer') return FOOTER_HEIGHT;
-      return DEFAULT_EVENT_HEIGHT;
-    },
-    [events.length, hasSystemFooter],
-  );
-
-  const rowProps: RowData = useMemo(
-    () => ({
-      events,
-      query,
-      hasSystemFooter,
-      setSize,
-      t,
-    }),
-    [events, query, hasSystemFooter, setSize, t],
-  );
+  // v2: rowProps no longer needs setSize, the library handles dynamic heights
+  const rowProps: RowData = {
+    events,
+    query,
+    hasSystemFooter,
+    t,
+  };
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-slate-50 dark:bg-slate-950">
@@ -286,16 +206,14 @@ export const SessionDetailTimeline: React.FC<SessionDetailTimelineProps> = ({
         ) : (
             dimensions.height > 0 && (
                 <List
-                  ref={listRef}
-                  height={dimensions.height}
-                  width={dimensions.width}
-                  itemCount={rowCount}
-                  itemSize={getRowHeight}
-                  itemData={rowProps}
+                  listRef={listRef}
+                  rowComponent={TimelineRow}
+                  rowCount={rowCount}
+                  rowHeight={dynamicRowHeight}
+                  rowProps={rowProps}
                   overscanCount={8}
-                >
-                  {TimelineRow}
-                </List>
+                  style={{ height: dimensions.height, width: dimensions.width }}
+                />
             )
         )}
       </div>
