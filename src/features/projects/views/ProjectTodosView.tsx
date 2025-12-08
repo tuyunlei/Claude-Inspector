@@ -57,14 +57,14 @@ export const ProjectTodosView: React.FC<ProjectTodosViewProps> = ({ project }) =
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
              >
-                 <option value="">All Statuses</option>
-                 <option value="pending">Pending</option>
-                 <option value="in_progress">In Progress</option>
-                 <option value="completed">Completed</option>
+                 <option value="">{t('todos.statuses.all')}</option>
+                 <option value="pending">{t('todos.statuses.pending')}</option>
+                 <option value="in_progress">{t('todos.statuses.inProgress')}</option>
+                 <option value="completed">{t('todos.statuses.completed')}</option>
              </select>
           </div>
           <div className="text-sm text-slate-500">
-              {filteredTodos.length} Tasks
+              {filteredTodos.length} {t('todos.countLabel')}
           </div>
       </div>
 
@@ -74,7 +74,7 @@ export const ProjectTodosView: React.FC<ProjectTodosViewProps> = ({ project }) =
             <div className="col-span-1 text-center">{t('todos.status')}</div>
             <div className="col-span-8">{t('todos.task')}</div>
             <div className="col-span-1">{t('todos.priority')}</div>
-            <div className="col-span-2 text-right">Actions</div>
+            <div className="col-span-2 text-right">{t('common.actions')}</div>
         </div>
 
         <div className="divide-y divide-slate-100 dark:divide-slate-700 overflow-y-auto">
@@ -85,7 +85,7 @@ export const ProjectTodosView: React.FC<ProjectTodosViewProps> = ({ project }) =
                     <div key={`${todo.id}-${i}`} className="flex flex-col md:grid md:grid-cols-12 gap-2 md:gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors group">
                         {/* Status Icon */}
                         <div className="md:col-span-1 flex md:justify-center items-center gap-2 mb-1 md:mb-0">
-                            <span className="md:hidden text-xs font-bold uppercase text-slate-400">Status: </span>
+                            <span className="md:hidden text-xs font-bold uppercase text-slate-400">{t('todos.status')}: </span>
                             {getStatusIcon(todo.status)}
                         </div>
                         
@@ -108,7 +108,7 @@ export const ProjectTodosView: React.FC<ProjectTodosViewProps> = ({ project }) =
                                     onClick={() => handleViewSession(todo.sessionId)}
                                     className="inline-flex items-center gap-1 text-xs text-orange-600 hover:text-orange-700 dark:text-orange-400 font-medium px-2 py-1 rounded hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
                                 >
-                                    View Session <ArrowUpRight size={12} />
+                                    {t('sessions.viewSession')} <ArrowUpRight size={12} />
                                 </button>
                             )}
                         </div>

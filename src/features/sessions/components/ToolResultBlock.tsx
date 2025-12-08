@@ -26,7 +26,7 @@ export const ToolResultBlock: React.FC<{ block: ClaudeContentBlock; query: strin
   // Preview: first 5 lines
   const lines = contentStr.split('\n');
   const isLong = lines.length > 5;
-  const previewText = isLong && !expanded ? lines.slice(0, 5).join('\n') + `\n... (${lines.length - 5} more lines)` : contentStr;
+  const previewText = isLong && !expanded ? lines.slice(0, 5).join('\n') + `\n... (${lines.length - 5} ${t('sessions.moreLines')})` : contentStr;
 
   return (
       <div className={cn("my-1 rounded border overflow-hidden", isError ? "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/20" : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900")}>

@@ -12,7 +12,7 @@ export const FileContentPreview: React.FC<{ node: FileTreeNode; fileMap?: Map<st
     useEffect(() => {
         const loadContent = async () => {
             if (!fileMap || !fileMap.has(node.path)) {
-                setContent('File content not available.');
+                setContent(t('structure.contentUnavailable'));
                 return;
             }
             if (sensitive) {
@@ -26,9 +26,9 @@ export const FileContentPreview: React.FC<{ node: FileTreeNode; fileMap?: Map<st
                 const entry = fileMap.get(node.path)!;
                 const fullText = await entry.text();
                 const preview = fullText.slice(0, 8192);
-                setContent(preview + (fullText.length > 8192 ? '\n... (truncated)' : ''));
+                setContent(preview + (fullText.length > 8192 ? `\n${t('common.truncated')}` : ''));
             } catch (e) {
-                setContent('Error reading file.');
+                setContent(t('structure.errorReading'));
             } finally {
                 setLoading(false);
             }

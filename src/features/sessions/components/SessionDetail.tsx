@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from 'react';
 import { Search, FolderGit2, MessageSquare, Download, Copy, Check, Clock, Hash, FileClock, AlertCircle, FileText, ChevronDown, ChevronRight, History, Terminal, Activity, ArrowLeft, PanelLeftOpen } from 'lucide-react';
 import { useI18n } from '../../../shared/i18n';
@@ -95,7 +96,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-slate-500 dark:text-slate-400">
                         <span className="flex items-center gap-1"><Clock size={12} /> {formatDate(session.timestamp)}</span>
                         <span className="flex items-center gap-1 truncate max-w-[200px]" title={session.primaryProjectPath || 'Unknown'}>
-                            <FolderGit2 size={12} /> {session.primaryProjectPath || 'Unknown Project'}
+                            <FolderGit2 size={12} /> {session.primaryProjectPath || t('projects.groups.unknown')}
                         </span>
                         <span className="flex items-center gap-1"><Hash size={12} /> {session.id.slice(0,8)}</span>
                         
@@ -119,7 +120,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({
                                 onClick={() => setShowPaths(!showPaths)}
                                 >
                                 <History size={10} />
-                                <span>Tracked Locations ({pathUsages.length})</span>
+                                <span>{t('sessions.trackedLocations')} ({pathUsages.length})</span>
                                 {showPaths ? <ChevronDown size={10}/> : <ChevronRight size={10}/>}
                                 </div>
                                 {showPaths && (
@@ -127,7 +128,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({
                                         {pathUsages.map((usage, idx) => (
                                             <div key={idx} className="flex justify-between items-center text-slate-600 dark:text-slate-400">
                                                 <span className="truncate mr-4" title={usage.path}>{usage.path}</span>
-                                                <span className="shrink-0 text-[10px] opacity-70">{usage.messageCount} items</span>
+                                                <span className="shrink-0 text-[10px] opacity-70">{usage.messageCount} {t('sidebar.items')}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -221,8 +222,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({
                     <div>
                         <h3 className="text-lg font-bold text-purple-900 dark:text-purple-100 mb-2">{t('sessions.codeActivity.title')}</h3>
                         <p className="text-sm text-purple-800 dark:text-purple-200 mb-4 opacity-80">
-                             This session contains recorded file history snapshots but no conversation messages. 
-                             This usually happens when using CLI commands that modify files without direct chat interaction (e.g. undo/rewind/checkout).
+                             {t('sessions.codeViewDesc')}
                         </p>
                         
                         <div className="flex flex-col gap-2">
@@ -235,7 +235,7 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({
                                          {f}
                                      </span>
                                  ))}
-                                 {snapshotFiles.length === 0 && <span className="text-xs italic opacity-50">No files listed in snapshots.</span>}
+                                 {snapshotFiles.length === 0 && <span className="text-xs italic opacity-50">{t('sessions.noFilesListed')}</span>}
                              </div>
                         </div>
                     </div>
@@ -270,14 +270,14 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({
                  </div>
 
                  <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 text-left">
-                     <div className="text-xs font-mono text-slate-400 mb-2">RAW EVENT STATS</div>
+                     <div className="text-xs font-mono text-slate-400 mb-2">{t('sessions.rawEvents')}</div>
                      <div className="grid grid-cols-2 gap-4 text-sm text-slate-600 dark:text-slate-400">
                          <div className="flex justify-between border-b border-slate-50 dark:border-slate-800 py-1">
-                             <span>Events</span>
+                             <span>{t('sessions.eventCount')}</span>
                              <span className="font-mono">{session?.messageCount}</span>
                          </div>
                          <div className="flex justify-between border-b border-slate-50 dark:border-slate-800 py-1">
-                             <span>Duration</span>
+                             <span>{t('sessions.duration')}</span>
                              <span className="font-mono">{(session?.events.length && session.events.length > 1) 
                                  ? ((new Date(session.events[session.events.length-1].timestamp).getTime() - new Date(session.events[0].timestamp).getTime()) / 1000).toFixed(2) + 's' 
                                  : '0s'}

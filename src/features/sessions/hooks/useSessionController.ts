@@ -12,6 +12,8 @@ interface UseSessionControllerProps {
     initialProjectId?: string;
 }
 
+export type DateRangeOption = 'all' | '7d' | '30d';
+
 export const useSessionController = (props?: UseSessionControllerProps) => {
   const { data } = useData();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -20,6 +22,7 @@ export const useSessionController = (props?: UseSessionControllerProps) => {
   const [inSessionQuery, setInSessionQuery] = useState('');
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState<SessionStoryRole>('chat');
+  const [dateRange, setDateRange] = useState<DateRangeOption>('all');
   
   // URL State / Props logic
   // Priority: 1. props.initialProjectId (if passed by workspace) 2. URL param (legacy)
@@ -53,13 +56,28 @@ export const useSessionController = (props?: UseSessionControllerProps) => {
   };
 
   const filteredSessions = useMemo(() => {
+    // 1. Calculate Date Cutoff
+    let cutoff = 0;
+    if (dateRange !== 'all') {
+        const d = new Date();
+        if (dateRange === '7d') d.setDate(d.getDate() - 7);
+        if (dateRange === '30d') d.setDate(d.getDate() - 30);
+        cutoff = d.getTime();
+    }
+
     const result = sessionList.filter(s => {
+        // Story Role Filter
         if (s.storyRole !== viewMode) return false;
         
+        // Project Filter
         if (selectedProject) {
             if (s.primaryProjectId !== selectedProject) return false;
         }
+
+        // Date Filter
+        if (cutoff > 0 && s.timestamp < cutoff) return false;
         
+        // Text Search
         const search = filter.toLowerCase();
         return (
             s.display.toLowerCase().includes(search) || 
@@ -68,7 +86,7 @@ export const useSessionController = (props?: UseSessionControllerProps) => {
     });
 
     return result;
-  }, [sessionList, filter, selectedProject, viewMode]);
+  }, [sessionList, filter, selectedProject, viewMode, dateRange]);
 
   const selectedSession = useMemo(() => {
     if (!selectedSessionId) return undefined;
@@ -139,6 +157,8 @@ export const useSessionController = (props?: UseSessionControllerProps) => {
       handleCopy,
       copied,
       viewMode,
-      setViewMode: handleSetViewMode
+      setViewMode: handleSetViewMode,
+      dateRange,
+      setDateRange
   };
 };

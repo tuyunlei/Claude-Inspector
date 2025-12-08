@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../app/App';
-import { FolderTree, FolderOpen, Info } from 'lucide-react';
+import { FolderTree, FolderOpen } from 'lucide-react';
 import { selectFileTree, selectFileMap } from '../../core/selectors/files';
 import { TreeNode, getKindIcon, getKindColor } from '../structure/components/TreeNode';
 import { FileContentPreview } from '../structure/components/FileContentPreview';
@@ -12,8 +13,11 @@ import { cn } from '../../shared/utils';
 export const GlobalFilesPage: React.FC = () => {
   const { data } = useData();
   const { t } = useI18n();
+  
+  // Explicitly select the Global File Tree
   const fileTree = selectFileTree(data);
   const fileMap = selectFileMap(data);
+  
   const [selectedNode, setSelectedNode] = useState<FileTreeNode | null>(null);
 
   useEffect(() => {
@@ -24,7 +28,7 @@ export const GlobalFilesPage: React.FC = () => {
   }, [fileTree, selectedNode]);
 
   if (!fileTree) {
-      return <div className="p-8 text-center text-slate-400">No file structure available.</div>;
+      return <div className="p-8 text-center text-slate-400">{t('structure.noStructure')}</div>;
   }
 
   const Icon = selectedNode ? getKindIcon(selectedNode.kind, selectedNode.isDir) : FolderOpen;
@@ -35,7 +39,7 @@ export const GlobalFilesPage: React.FC = () => {
       <div className="w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 overflow-y-auto flex flex-col transition-colors shrink-0">
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
             <FolderTree size={18} className="text-orange-600"/>
-            All Files (~/.claude)
+            {t('structure.rootTitle')}
         </div>
         <div className="py-2">
             <TreeNode 

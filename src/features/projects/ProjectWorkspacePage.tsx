@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Navigate, useSearchParams } from 'react-router-dom';
 import { useData } from '../../app/App';
@@ -49,7 +50,7 @@ export const ProjectWorkspacePage: React.FC = () => {
       if (projects.length > 0) {
           return <Navigate to="/projects" replace />;
       }
-      return <div className="p-8 text-center text-slate-500">No project found. Please upload logs.</div>;
+      return <div className="p-8 text-center text-slate-500">{t('workspace.noProject')}</div>;
   }
 
   const getProjectIcon = (type: string) => {

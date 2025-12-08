@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Search, FolderGit2, MonitorCog, History, MessageSquare, Terminal, Activity, PanelLeftClose } from 'lucide-react';
 import { cn, formatDate } from '../../../shared/utils';
@@ -35,7 +36,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
         if (session.primaryProjectId === SYSTEM_SESSIONS_ID) return t('projects.groups.systemTitle');
         
         const path = session.primaryProjectPath || UNKNOWN_PROJECT_PATH;
-        if (path === UNKNOWN_PROJECT_PATH) return 'Unknown';
+        if (path === UNKNOWN_PROJECT_PATH) return t('common.unknown');
         
         // Show last two parts of path for clarity
         return path.split('/').slice(-2).join('/');
@@ -49,7 +50,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
     const getSafeTitle = (session: SessionSummary) => {
         const raw = session.display;
         if (isUuidLike(raw)) {
-            return `Untitled (${raw.slice(0, 8)})`;
+            return `${t('common.untitled')} (${raw.slice(0, 8)})`;
         }
         return raw;
     };
@@ -117,16 +118,16 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
                     if (viewMode === 'code-activity') {
                          metaDetail = (
                             <div className="flex items-center gap-2">
-                                <span>{session.fileSnapshotCount} snapshots</span>
+                                <span>{session.fileSnapshotCount} {t('sidebar.snapshots')}</span>
                             </div>
                          );
                     } else if (viewMode === 'system') {
-                         metaDetail = <span>{session.messageCount} events</span>;
+                         metaDetail = <span>{session.messageCount} {t('sidebar.events')}</span>;
                     } else {
                          // Chat Mode
                          metaDetail = (
                              <div className="flex items-center gap-2">
-                                <span>{session.messageCount} msgs</span>
+                                <span>{session.messageCount} {t('sidebar.msgs')}</span>
                                 {session.totalTokens > 0 && (
                                     <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 dark:text-slate-400 font-medium">
                                         {formatTokenCount(session.totalTokens, 'chat')} {t('sessions.tok')}

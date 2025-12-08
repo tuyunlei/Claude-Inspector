@@ -44,6 +44,26 @@ export const UploadPage: React.FC<UploadProps> = ({ onDataLoaded }) => {
       if (e.target.files) processFiles(e.target.files, 'zip');
   };
 
+  // Split logic for drag drop hint to allow code block formatting
+  const renderDragDropHint = () => {
+      const hint = t('upload.dragDropHint', { path: '||PATH||', config: '||CONFIG||' });
+      const parts = hint.split(/(\|\|PATH\|\||\|\|CONFIG\|\|)/g);
+      
+      return (
+          <>
+            {parts.map((part, i) => {
+                if (part === '||PATH||') {
+                    return <code key={i} className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300">~/.claude</code>;
+                }
+                if (part === '||CONFIG||') {
+                    return <code key={i} className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300">config.json</code>;
+                }
+                return <span key={i}>{part}</span>;
+            })}
+          </>
+      );
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 transition-colors">
       <div className="max-w-2xl w-full">
@@ -88,7 +108,7 @@ export const UploadPage: React.FC<UploadProps> = ({ onDataLoaded }) => {
             {detectedConfig && !loading && !error && (
                  <div className="mb-6 inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 text-xs font-medium rounded-full border border-green-200 dark:border-green-800 animate-in fade-in slide-in-from-bottom-2">
                      <FileJson size={14} />
-                     Config detected: {detectedConfig.name}
+                     {t('upload.configDetected')}: {detectedConfig.name}
                 </div>
             )}
 
@@ -132,10 +152,10 @@ export const UploadPage: React.FC<UploadProps> = ({ onDataLoaded }) => {
                 {/* Subtext / Alternative */}
                 <div className="text-sm text-slate-400 dark:text-slate-500 space-y-2 mt-4">
                     <p>
-                        {t('upload.or')} <button onClick={() => zipInputRef.current?.click()} className="text-slate-600 dark:text-slate-300 underline decoration-slate-300 hover:text-orange-600 transition-colors">select a .zip archive</button>
+                        {t('upload.or')} <button onClick={() => zipInputRef.current?.click()} className="text-slate-600 dark:text-slate-300 underline decoration-slate-300 hover:text-orange-600 transition-colors">{t('upload.selectZipButton')}</button>
                     </p>
                     <p className="text-xs opacity-75">
-                        Drag & drop <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300">~/.claude</code> and <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300">config.json</code> together
+                        {renderDragDropHint()}
                     </p>
                 </div>
             </div>
@@ -145,12 +165,12 @@ export const UploadPage: React.FC<UploadProps> = ({ onDataLoaded }) => {
           <div className="bg-slate-50 dark:bg-slate-950/50 px-8 py-5 border-t border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row justify-center items-center gap-4 text-xs text-slate-400 dark:text-slate-500">
              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-lg shadow-sm">
                 <Command size={12} />
-                <span>Mac: Cmd + Shift + . to show hidden files</span>
+                <span>{t('common.macHint')}</span>
              </div>
              <div className="hidden sm:block text-slate-300 dark:text-slate-700">•</div>
              <div className="flex items-center gap-2">
                 <Info size={12} />
-                <span>Parsed locally in browser</span>
+                <span>{t('upload.localProcessing')}</span>
              </div>
           </div>
         </div>

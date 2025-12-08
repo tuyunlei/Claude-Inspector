@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Settings, UploadCloud, Sun, Moon, Languages, Menu, X, Monitor, PanelLeftClose, PanelLeftOpen, LayoutDashboard, FolderTree, History, FolderGit2 } from 'lucide-react';
@@ -16,9 +17,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onReset, isOpen, onCloseMobile }) => 
 
   const navItems = [
       { path: '/overview', icon: LayoutDashboard, label: t('workspace.tabs.overview') },
-      { path: '/projects', icon: FolderGit2, label: 'Projects' },
-      { path: '/history', icon: History, label: 'Global History' },
-      { path: '/files', icon: FolderTree, label: 'Global Files' },
+      { path: '/projects', icon: FolderGit2, label: t('sidebar.projects') },
+      { path: '/history', icon: History, label: t('sidebar.globalHistory') },
+      { path: '/files', icon: FolderTree, label: t('sidebar.globalFiles') },
   ];
 
   return (

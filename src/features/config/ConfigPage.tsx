@@ -84,7 +84,7 @@ export const ConfigPage: React.FC = () => {
                                 </div>
                                 {config.env && (
                                     <div className="mt-2 text-slate-500">
-                                        # Env Variables: {Object.keys(config.env).join(', ')}
+                                        # {t('config.envVars')}: {Object.keys(config.env).join(', ')}
                                     </div>
                                 )}
                             </div>

@@ -1,7 +1,23 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 const translations = {
   en: {
+    common: {
+      untitled: "Untitled",
+      unknown: "Unknown",
+      error: "Error",
+      loading: "Loading...",
+      truncated: "... (truncated)",
+      viewAll: "View All",
+      actions: "Actions",
+      user: "USER",
+      assistant: "CLAUDE",
+      in: "In",
+      out: "Out",
+      macHint: "Mac: Cmd + Shift + . to show hidden files",
+      sessions: "sessions"
+    },
     sidebar: {
       title: "Claude Inspector",
       subtitle: "Local Log Inspector",
@@ -10,7 +26,13 @@ const translations = {
       globalConfig: "Global Config",
       collapse: "Collapse Sidebar",
       expand: "Expand Sidebar",
-      noProjects: "No Projects Found"
+      noProjects: "No Projects Found",
+      events: "events",
+      msgs: "msgs",
+      snapshots: "snapshots",
+      items: "items",
+      globalHistory: "Global History",
+      globalFiles: "Global Files"
     },
     workspace: {
       tabs: {
@@ -33,7 +55,8 @@ const translations = {
       files: {
           title: "Project Structure",
           description: "File structure view (scoped to ~/.claude)"
-      }
+      },
+      noProject: "No project found. Please upload logs."
     },
     theme: {
       light: "Light",
@@ -51,18 +74,45 @@ const translations = {
       optionalConfig: "Optional: Add MCP Config JSON",
       configHint: "If you use a custom config file (e.g. ~/.claude.json), upload it here to see extra MCP servers.",
       footer: "Open Source • Private & Secure • Includes History & MCP Config Support",
-      error: "Failed to process"
+      error: "Failed to process",
+      configDetected: "Config detected",
+      dragDropHint: "Drag & drop {path} and {config} together",
+      selectZipButton: "select a .zip archive"
     },
     dashboard: {
       overview: "Overview",
       subtitle: "Summary of your local Claude Code activity",
       totalSessions: "Total Sessions",
       totalTokens: "Total Tokens",
+      totalProjects: "Total Projects",
       activeProjects: "Active Projects",
       pendingTasks: "Pending Tasks",
-      sessionActivity: "Session Activity",
-      modelUsage: "Model Usage (Messages)",
-      noModelData: "No model data available"
+      sessionActivity: "Activity Trends",
+      modelUsage: "Model Usage (Tokens)",
+      noModelData: "No model data available",
+      topProjects: "Top Projects",
+      activityRange: "Activity Range",
+      filesProcessed: "Files Processed",
+      recentSessions: "Recent Sessions",
+      viewAllHistory: "View All History",
+      noRecent: "No recent sessions found.",
+      noActivity30d: "No activity recorded in the last 30 days",
+      noActivity: "No activity recorded yet.",
+      last30Days: "30 Days",
+      chartSessions: "Sessions"
+    },
+    history: {
+      globalTitle: "Global History",
+      globalSubtitle: "Timeline of all sessions across all projects.",
+      allProjects: "All Projects",
+      filterProject: "Filter by Project",
+      filterTime: "Time Range",
+      ranges: {
+        all: "All Time",
+        '7d': "Last 7 Days",
+        '30d': "Last 30 Days"
+      },
+      sessionsFound: "sessions found"
     },
     sessions: {
       searchPlaceholder: "Search sessions...",
@@ -99,6 +149,14 @@ const translations = {
       trackedFiles: "Tracked Files",
       viewRawSnapshot: "View Raw Snapshot JSON",
       systemSessionNotice: "System Session: This session contains only file history snapshots used for rewinding/undoing changes.",
+      trackedLocations: "Tracked Locations",
+      codeViewDesc: "This session contains recorded file history snapshots but no conversation messages. This usually happens when using CLI commands that modify files without direct chat interaction (e.g. undo/rewind/checkout).",
+      noFilesListed: "No files listed in snapshots.",
+      rawEvents: "RAW EVENT STATS",
+      duration: "Duration",
+      eventCount: "Events",
+      viewSession: "View Session",
+      moreLines: "more lines",
       views: {
         chat: "Conversations",
         code: "Code Activity",
@@ -121,6 +179,10 @@ const translations = {
       sessions: "Sessions",
       totalTokens: "Total Tokens",
       lastActive: "Last Active",
+      directoryTitle: "Projects Directory",
+      directorySubtitle: "All detected projects and session groups",
+      settingsTitle: "Project Settings",
+      settingsDesc: "Specific configuration for {name} is not yet available. Please check the global configuration page for system-wide settings.",
       groups: {
         workspace: "Workspaces",
         globalTitle: "Global Sessions",
@@ -128,6 +190,16 @@ const translations = {
         systemTitle: "System Sessions",
         systemSubtitle: "Internal sessions for file history snapshots and state tracking.",
         unknown: "Unknown Project"
+      },
+      columns: {
+        session: "Session",
+        tokens: "Tokens",
+        messages: "Messages",
+        date: "Date",
+        project: "Project",
+        type: "Type",
+        lastActive: "Last Active",
+        name: "Project Name"
       }
     },
     todos: {
@@ -139,7 +211,14 @@ const translations = {
       priority: "Priority",
       sessionId: "Session ID",
       noTodos: "No todo items found in logs.",
-      normal: "Normal"
+      normal: "Normal",
+      statuses: {
+        all: "All Statuses",
+        pending: "Pending",
+        inProgress: "In Progress",
+        completed: "Completed"
+      },
+      countLabel: "Tasks"
     },
     config: {
       title: "Configuration",
@@ -151,7 +230,8 @@ const translations = {
       mcpServers: "MCP Servers",
       noMcp: "No MCP servers found or config not parsed.",
       globalSettings: "Global Settings (Hooks)",
-      noHooks: "No hooks configured in settings.json"
+      noHooks: "No hooks configured in settings.json",
+      envVars: "Env Variables"
     },
     structure: {
       path: "~/.claude",
@@ -162,6 +242,14 @@ const translations = {
       fileContent: "File Content",
       selectFile: "Select a file or folder to view details",
       matchRule: "Identification Rule",
+      contentUnavailable: "File content not available.",
+      errorReading: "Error reading file.",
+      noStructure: "No file structure available.",
+      rootTitle: "All Files (~/.claude)",
+      emptyDir: "Empty directory",
+      noProjectFiles: "No files found for this project",
+      projectFilesDesc: "This view shows session logs (*.jsonl) and tasks (*.json) from ~/.claude that are directly linked to this project.",
+      projectFilesTitle: "Project Files",
       kinds: {
         root: { 
           label: 'Root Directory', 
@@ -252,6 +340,21 @@ const translations = {
     }
   },
   zh: {
+     common: {
+      untitled: "无标题",
+      unknown: "未知",
+      error: "错误",
+      loading: "加载中...",
+      truncated: "... (已截断)",
+      viewAll: "查看全部",
+      actions: "操作",
+      user: "用户",
+      assistant: "CLAUDE",
+      in: "输入",
+      out: "输出",
+      macHint: "Mac: Cmd + Shift + . 显示隐藏文件",
+      sessions: "会话"
+    },
      sidebar: {
       title: "Claude Inspector",
       subtitle: "本地日志分析器",
@@ -260,7 +363,13 @@ const translations = {
       globalConfig: "全局配置",
       collapse: "收起侧边栏",
       expand: "展开侧边栏",
-      noProjects: "未找到项目"
+      noProjects: "未找到项目",
+      events: "事件",
+      msgs: "消息",
+      snapshots: "快照",
+      items: "项",
+      globalHistory: "全局历史",
+      globalFiles: "全局文件"
     },
     workspace: {
       tabs: {
@@ -283,7 +392,8 @@ const translations = {
       files: {
           title: "项目结构",
           description: "文件结构视图 (范围: ~/.claude)"
-      }
+      },
+      noProject: "未找到项目。请先上传日志。"
     },
     theme: {
       light: "浅色",
@@ -301,18 +411,45 @@ const translations = {
       optionalConfig: "可选：添加 MCP 配置文件 JSON",
       configHint: "如果您使用自定义配置文件（例如 ~/.claude.json），请在此上传以查看额外的 MCP 服务器。",
       footer: "开源 • 隐私安全 • 支持历史记录和 MCP 配置",
-      error: "处理失败"
+      error: "处理失败",
+      configDetected: "已检测到配置",
+      dragDropHint: "同时拖拽 {path} 和 {config}",
+      selectZipButton: "选择 .zip 压缩包"
     },
     dashboard: {
       overview: "概览",
       subtitle: "本地 Claude Code 活动摘要",
       totalSessions: "总会话数",
       totalTokens: "总 Token 数",
+      totalProjects: "总项目数",
       activeProjects: "活跃项目",
       pendingTasks: "待办任务",
-      sessionActivity: "会话活跃度",
-      modelUsage: "模型使用情况 (消息数)",
-      noModelData: "暂无模型数据"
+      sessionActivity: "活动趋势",
+      modelUsage: "模型使用情况 (Token)",
+      noModelData: "暂无模型数据",
+      topProjects: "热门项目",
+      activityRange: "活动时间范围",
+      filesProcessed: "文件已处理",
+      recentSessions: "最近会话",
+      viewAllHistory: "查看所有历史",
+      noRecent: "未找到最近的会话。",
+      noActivity30d: "过去 30 天无活动记录",
+      noActivity: "暂无活动记录。",
+      last30Days: "30 天",
+      chartSessions: "会话"
+    },
+    history: {
+      globalTitle: "全局历史",
+      globalSubtitle: "所有项目的会话时间线。",
+      allProjects: "所有项目",
+      filterProject: "筛选项目",
+      filterTime: "时间范围",
+      ranges: {
+        all: "全部时间",
+        '7d': "最近 7 天",
+        '30d': "最近 30 天"
+      },
+      sessionsFound: "个会话"
     },
     sessions: {
       searchPlaceholder: "搜索会话...",
@@ -349,6 +486,14 @@ const translations = {
       trackedFiles: "追踪的文件",
       viewRawSnapshot: "查看原始快照 JSON",
       systemSessionNotice: "系统会话：此会话仅包含用于倒带/撤销更改的文件历史快照。",
+      trackedLocations: "追踪路径",
+      codeViewDesc: "此会话包含记录的文件历史快照，但没有对话消息。这通常发生在使用修改文件的 CLI 命令而没有直接聊天交互时（例如撤消/倒带/检出）。",
+      noFilesListed: "快照中未列出文件。",
+      rawEvents: "原始事件统计",
+      duration: "持续时间",
+      eventCount: "事件数",
+      viewSession: "查看会话",
+      moreLines: "更多行",
       views: {
         chat: "对话",
         code: "代码活动",
@@ -371,6 +516,10 @@ const translations = {
       sessions: "会话",
       totalTokens: "总 Token",
       lastActive: "最后活跃",
+      directoryTitle: "项目目录",
+      directorySubtitle: "所有检测到的项目和会话组",
+      settingsTitle: "项目设置",
+      settingsDesc: "{name} 的特定配置尚不可用。请检查全局配置页面以获取系统级设置。",
       groups: {
         workspace: "工作区项目",
         globalTitle: "未归属到项目的会话",
@@ -378,6 +527,16 @@ const translations = {
         systemTitle: "系统会话（File History 等）",
         systemSubtitle: "Claude 用于记录文件历史快照和内部状态的系统会话。",
         unknown: "未知项目"
+      },
+      columns: {
+        session: "会话",
+        tokens: "Token",
+        messages: "消息数",
+        date: "日期",
+        project: "项目",
+        type: "类型",
+        lastActive: "最后活跃",
+        name: "项目名称"
       }
     },
     todos: {
@@ -389,7 +548,14 @@ const translations = {
       priority: "优先级",
       sessionId: "会话 ID",
       noTodos: "日志中未找到待办事项。",
-      normal: "普通"
+      normal: "普通",
+      statuses: {
+        all: "所有状态",
+        pending: "待办",
+        inProgress: "进行中",
+        completed: "已完成"
+      },
+      countLabel: "任务"
     },
     config: {
       title: "配置",
@@ -401,7 +567,8 @@ const translations = {
       mcpServers: "MCP 服务器",
       noMcp: "未找到 MCP 服务器或配置解析失败。",
       globalSettings: "全局设置 (Hooks)",
-      noHooks: "settings.json 中未配置 hooks"
+      noHooks: "settings.json 中未配置 hooks",
+      envVars: "环境变量"
     },
     structure: {
       path: "~/.claude",
@@ -412,6 +579,14 @@ const translations = {
       fileContent: "文件内容",
       selectFile: "选择文件或文件夹查看详情",
       matchRule: "识别规则",
+      contentUnavailable: "文件内容不可用。",
+      errorReading: "读取文件错误。",
+      noStructure: "无可用文件结构。",
+      rootTitle: "所有文件 (~/.claude)",
+      emptyDir: "空目录",
+      noProjectFiles: "未找到此项目的文件",
+      projectFilesDesc: "此视图显示与该项目直接链接的 ~/.claude 中的会话日志 (*.jsonl) 和任务 (*.json)。",
+      projectFilesTitle: "项目文件",
       kinds: {
         root: { 
           label: '根目录', 
@@ -513,7 +688,7 @@ function getNested(obj: any, path: string) {
 const I18nContext = createContext<{
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => any;
+  t: (key: string, args?: Record<string, string>) => any;
 }>({
   language: 'en',
   setLanguage: () => {},
@@ -532,9 +707,15 @@ export const I18nProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return 'en';
   });
 
-  const t = (key: string) => {
-    const text = getNested(translations[language], key);
-    return text || key;
+  const t = (key: string, args?: Record<string, string>) => {
+    let text = getNested(translations[language], key);
+    if (!text) return key;
+    if (args) {
+        Object.entries(args).forEach(([k, v]) => {
+            text = text.replace(`{${k}}`, v);
+        });
+    }
+    return text;
   };
 
   return (

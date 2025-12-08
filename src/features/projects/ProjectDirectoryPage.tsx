@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../app/App';
@@ -5,9 +6,11 @@ import { selectProjects } from '../../core/selectors/projects';
 import { FolderGit2, Globe, MonitorCog, ChevronRight, Zap, MessageSquare, Clock } from 'lucide-react';
 import { cn, formatDate } from '../../shared/utils';
 import { ProjectStats } from '../../types';
+import { useI18n } from '../../shared/i18n';
 
 export const ProjectDirectoryPage: React.FC = () => {
   const { data } = useData();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const projects = selectProjects(data);
 
@@ -26,9 +29,9 @@ export const ProjectDirectoryPage: React.FC = () => {
   return (
     <div className="p-8 max-w-7xl mx-auto h-full overflow-y-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Projects Directory</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">{t('projects.directoryTitle')}</h1>
         <p className="text-slate-500 dark:text-slate-400">
-          All detected projects and session groups ({projects.length}).
+          {t('projects.directorySubtitle')} ({projects.length}).
         </p>
       </div>
 
@@ -37,11 +40,11 @@ export const ProjectDirectoryPage: React.FC = () => {
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
               <tr>
-                <th className="px-6 py-4">Project Name</th>
-                <th className="px-6 py-4">Type</th>
-                <th className="px-6 py-4 text-right">Sessions</th>
-                <th className="px-6 py-4 text-right">Tokens</th>
-                <th className="px-6 py-4 text-right">Last Active</th>
+                <th className="px-6 py-4">{t('projects.columns.name')}</th>
+                <th className="px-6 py-4">{t('projects.columns.type')}</th>
+                <th className="px-6 py-4 text-right">{t('projects.columns.messages')}</th>
+                <th className="px-6 py-4 text-right">{t('projects.columns.tokens')}</th>
+                <th className="px-6 py-4 text-right">{t('projects.columns.lastActive')}</th>
                 <th className="px-6 py-4 w-10"></th>
               </tr>
             </thead>

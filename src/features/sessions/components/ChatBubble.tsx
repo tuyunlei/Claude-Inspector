@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { cn } from '../../../shared/utils';
 import { ClaudeEvent } from '../../../types';
 import { ContentBlock } from './ContentBlock';
 import { HighlightText } from './HighlightText';
+import { useI18n } from '../../../shared/i18n';
 
 interface ChatBubbleProps {
   event: ClaudeEvent;
@@ -12,6 +14,7 @@ interface ChatBubbleProps {
 }
 
 export const ChatBubble: React.FC<ChatBubbleProps> = ({ event, query, index, isFirstInSequence = true }) => {
+  const { t } = useI18n();
   if (!event.message) return null;
   const isUser = event.message.role === 'user';
   const content = event.message.content;
@@ -38,7 +41,7 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ event, query, index, isF
       <div className="flex items-center justify-between gap-2 mb-1 opacity-80 group-hover:opacity-100 transition-opacity">
         <div className="flex items-baseline gap-2">
             <span className={roleLabelClass}>
-            {isUser ? 'USER' : 'CLAUDE'}
+            {isUser ? t('common.user') : t('common.assistant')}
             </span>
             
             {timestamp && (
@@ -48,8 +51,8 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ event, query, index, isF
 
         {!isUser && event.message.usage && (
              <div className="flex items-center gap-2 text-[10px] text-slate-400 opacity-60">
-                <span>In: {event.message.usage.input_tokens}</span>
-                <span>Out: {event.message.usage.output_tokens}</span>
+                <span>{t('common.in')}: {event.message.usage.input_tokens}</span>
+                <span>{t('common.out')}: {event.message.usage.output_tokens}</span>
                 {event.message.model && <span className="hidden sm:inline">| {event.message.model}</span>}
              </div>
          )}
