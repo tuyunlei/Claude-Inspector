@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../../app/DataContext';
 import { selectProjects } from '../../../model/selectors/projects';
-import { FolderGit2, Globe, MonitorCog, ChevronRight, Zap, MessageSquare, Clock } from 'lucide-react';
+import { FolderGit2, Globe, Monitor, ChevronRight, Zap, MessageSquare, Clock } from 'lucide-react';
 import { cn, formatDate } from '../../../utils/utils';
 import { ProjectStats } from '../../../model/projects';
 import { useI18n } from '../../i18n';
@@ -17,7 +17,7 @@ export const ProjectDirectoryPage: React.FC = () => {
   const getProjectIcon = (type: string) => {
       switch(type) {
           case 'global': return <Globe size={20} className="text-blue-500" />;
-          case 'system': return <MonitorCog size={20} className="text-slate-500" />;
+          case 'system': return <Monitor size={20} className="text-slate-500" />;
           default: return <FolderGit2 size={20} className="text-orange-500" />;
       }
   };

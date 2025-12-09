@@ -4,7 +4,7 @@ import { useData } from '../../../app/DataContext';
 import { selectProjects } from '../../../model/selectors/projects';
 import { useI18n } from '../../i18n';
 import { cn } from '../../../utils/utils';
-import { LayoutDashboard, History, FolderTree, CheckSquare, Settings, Globe, MonitorCog, FolderGit2 } from 'lucide-react';
+import { LayoutDashboard, History, FolderTree, CheckSquare, Settings, Globe, Monitor, FolderGit2 } from 'lucide-react';
 import { ProjectOverviewView } from './ProjectOverviewView';
 import { ProjectHistoryView } from './ProjectHistoryView';
 import { ProjectFilesView } from './ProjectFilesView';
@@ -55,7 +55,7 @@ export const ProjectWorkspacePage: React.FC = () => {
   const getProjectIcon = (type: string) => {
     switch(type) {
         case 'global': return <Globe size={24} className="text-blue-500" />;
-        case 'system': return <MonitorCog size={24} className="text-slate-500" />;
+        case 'system': return <Monitor size={24} className="text-slate-500" />;
         default: return <FolderGit2 size={24} className="text-orange-600" />;
     }
   };
