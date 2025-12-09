@@ -11,8 +11,6 @@ import remarkRehype from "remark-rehype";
 import rehypeStringify from "rehype-stringify";
 import { Bug, FileCode, Settings2, Eye } from "lucide-react";
 
-import "highlight.js/styles/github-dark.css"; 
-
 const DEFAULT_MARKDOWN = `# Markdown Debug
 
 - Support **GFM** (Tables, Task lists, etc.)
