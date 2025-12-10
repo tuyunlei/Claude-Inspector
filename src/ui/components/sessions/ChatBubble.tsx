@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { cn } from '../../../utils/utils';
 import { ClaudeEvent } from '../../../model/events';
 import { ContentBlock } from './ContentBlock';
-import { HighlightText } from './HighlightText';
 import { useI18n } from '../../i18n';
 import { User, Sparkles } from 'lucide-react';
+import { MarkdownRenderer } from '../MarkdownRenderer';
 
 interface ChatBubbleProps {
   event: ClaudeEvent;
@@ -36,49 +35,40 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ event, query, index, isF
         <div className="flex items-center gap-2.5">
             {/* Avatar Icon */}
             <div className={cn(
-                "w-6 h-6 rounded-md flex items-center justify-center shrink-0 shadow-sm",
-                isUser 
-                    ? "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
-                    : "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                "w-6 h-6 rounded-md flex items-center justify-center shrink-0",
+                isUser ? "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400" : "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400"
             )}>
                 {isUser ? <User size={14} /> : <Sparkles size={14} />}
             </div>
-
-            {/* Role Name */}
-            <span className={cn(
-                "text-xs font-bold tracking-wide uppercase",
-                isUser ? "text-slate-700 dark:text-slate-300" : "text-slate-700 dark:text-slate-300"
-            )}>
+            
+            {/* Name */}
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
                 {isUser ? t('common.user') : t('common.assistant')}
             </span>
-            
-            {/* Timestamp */}
-            {timestamp && (
-                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">
-                    {timestamp}
-                </span>
-            )}
-        </div>
 
-        {/* Token Usage Stats (Right Aligned) */}
-        {!isUser && event.message.usage && (
-             <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono bg-slate-200/50 dark:bg-slate-800 px-1.5 py-0.5 rounded">
-                <span>In: {event.message.usage.input_tokens}</span>
-                <span className="opacity-30">|</span>
-                <span>Out: {event.message.usage.output_tokens}</span>
-             </div>
-         )}
+             {/* Time */}
+             <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 mt-0.5">
+                {timestamp}
+            </span>
+        </div>
       </div>
 
       {/* Content Body */}
-      <div className="pl-[34px] space-y-2">
-            {Array.isArray(content) ? (
-                content.map((b, i) => <ContentBlock key={i} block={b} query={query} />)
-            ) : (
-                <div className="whitespace-pre-wrap text-slate-800 dark:text-slate-200 leading-relaxed text-sm">
-                    <HighlightText text={typeof content === 'string' ? content : ''} query={query} />
-                </div>
-            )}
+      <div className="pl-0 md:pl-8.5">
+          {Array.isArray(content) ? (
+            <div className="flex flex-col gap-3">
+              {content.map((block, i) => (
+                <ContentBlock key={i} block={block} query={query} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-sm leading-relaxed text-slate-800 dark:text-slate-200">
+              <MarkdownRenderer 
+                 content={typeof content === 'string' ? content : ''} 
+                 className="prose-slate dark:prose-invert"
+              />
+            </div>
+          )}
       </div>
     </div>
   );

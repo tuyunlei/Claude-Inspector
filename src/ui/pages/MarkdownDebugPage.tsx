@@ -1,15 +1,15 @@
 import React, { useMemo, useState } from "react";
-import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import rehypeHighlight from "rehype-highlight";
+import rehypeStringify from "rehype-stringify";
 
 import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
-import rehypeStringify from "rehype-stringify";
 import { Bug, FileCode, Settings2, Eye } from "lucide-react";
+import { MarkdownRenderer } from "../components/MarkdownRenderer";
 
 const DEFAULT_MARKDOWN = `# Markdown Debug
 
@@ -59,34 +59,13 @@ export const MarkdownDebugPage: React.FC = () => {
     enableHighlight: true,
   });
 
-  // remark / rehype plugins for ReactMarkdown
-  const remarkPlugins = useMemo(() => {
-    const list: any[] = [];
-    if (config.enableGfm) list.push(remarkGfm);
-    return list;
-  }, [config.enableGfm]);
-
-  const rehypePlugins = useMemo(() => {
-    const list: any[] = [];
-    if (config.allowHtml) {
-      list.push(rehypeRaw);
-      if (config.sanitizeHtml) {
-        list.push(rehypeSanitize);
-      }
-    }
-    if (config.enableHighlight) {
-      list.push(rehypeHighlight);
-    }
-    return list;
-  }, [config.allowHtml, config.sanitizeHtml, config.enableHighlight]);
-
-  // Unified pipeline for HTML output preview
+  // Unified pipeline for HTML output preview (Right Column)
   const htmlOutput = useMemo(() => {
     try {
       const processor = unified()
         .use(remarkParse)
         .use(config.enableGfm ? remarkGfm : () => {})
-        // @ts-ignore - unified types can be tricky with optional plugins
+        // @ts-ignore
         .use(remarkRehype, { allowDangerousHtml: config.allowHtml })
         .use(config.allowHtml ? rehypeRaw : () => {})
         .use(config.allowHtml && config.sanitizeHtml ? rehypeSanitize : () => {})
@@ -121,96 +100,57 @@ export const MarkdownDebugPage: React.FC = () => {
             <Settings2 size={12} /> Source
           </div>
           <textarea
-            className="flex-1 w-full resize-none p-4 text-sm font-mono leading-relaxed outline-none bg-transparent text-slate-800 dark:text-slate-200"
+            className="flex-1 w-full resize-none p-4 font-mono text-sm bg-transparent outline-none text-slate-800 dark:text-slate-200"
             value={source}
             onChange={(e) => setSource(e.target.value)}
-            spellCheck={false}
           />
         </section>
 
-        {/* Middle: Preview */}
+        {/* Middle: React Render Preview */}
         <section className="flex flex-col h-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900 flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            <Eye size={12} /> Preview
-          </div>
-          <div className="flex-1 overflow-auto p-6">
-            <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
-                {/* @ts-ignore */}
-                <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins}>
-                  {source}
-                </ReactMarkdown>
-            </div>
-          </div>
+           <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <Eye size={12} /> Render Preview
+              </div>
+              <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+                      <input type="checkbox" checked={config.enableGfm} onChange={e => setConfig({...config, enableGfm: e.target.checked})} className="rounded text-purple-600 focus:ring-purple-500"/>
+                      GFM
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+                      <input type="checkbox" checked={config.allowHtml} onChange={e => setConfig({...config, allowHtml: e.target.checked})} className="rounded text-purple-600 focus:ring-purple-500"/>
+                      HTML
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+                      <input type="checkbox" checked={config.sanitizeHtml} onChange={e => setConfig({...config, sanitizeHtml: e.target.checked})} className="rounded text-purple-600 focus:ring-purple-500"/>
+                      Sanitize
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+                      <input type="checkbox" checked={config.enableHighlight} onChange={e => setConfig({...config, enableHighlight: e.target.checked})} className="rounded text-purple-600 focus:ring-purple-500"/>
+                      Highlight
+                  </label>
+              </div>
+           </div>
+           <div className="flex-1 overflow-auto p-4 bg-white dark:bg-slate-950">
+             <MarkdownRenderer 
+                content={source}
+                className="prose-slate dark:prose-invert"
+                enableGfm={config.enableGfm}
+                allowHtml={config.allowHtml}
+                sanitizeHtml={config.sanitizeHtml}
+                highlightCode={config.enableHighlight}
+             />
+           </div>
         </section>
 
-        {/* Right: HTML & Config */}
-        <section className="flex flex-col h-full gap-4 min-h-0">
-          
-          {/* HTML Output */}
-          <div className="flex-1 flex flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden min-h-0">
-            <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900 flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                <FileCode size={12} /> HTML Output
-            </div>
-            <div className="flex-1 overflow-auto p-0 bg-slate-50 dark:bg-slate-950">
-                <pre className="text-xs font-mono p-4 text-slate-600 dark:text-slate-300 whitespace-pre-wrap break-all">
-                {htmlOutput}
-                </pre>
-            </div>
+        {/* Right: HTML Output */}
+        <section className="flex flex-col h-full bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-4 py-2 border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <FileCode size={12} /> HTML Output
           </div>
-
-          {/* Config Controls */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 shrink-0">
-            <div className="text-xs font-semibold text-slate-900 dark:text-slate-100 mb-3 uppercase tracking-wider">
-                Configuration
-            </div>
-            <div className="space-y-3">
-                <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                <input
-                    type="checkbox"
-                    className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
-                    checked={config.enableGfm}
-                    onChange={(e) =>
-                    setConfig((c) => ({ ...c, enableGfm: e.target.checked }))
-                    }
-                />
-                <span>Enable GFM (Tables/Tasks)</span>
-                </label>
-                <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                <input
-                    type="checkbox"
-                    className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
-                    checked={config.allowHtml}
-                    onChange={(e) =>
-                    setConfig((c) => ({ ...c, allowHtml: e.target.checked }))
-                    }
-                />
-                <span>Allow HTML (rehype-raw)</span>
-                </label>
-                <label className={`flex items-center gap-2 text-sm cursor-pointer ${!config.allowHtml ? 'opacity-50 cursor-not-allowed' : 'text-slate-700 dark:text-slate-300'}`}>
-                <input
-                    type="checkbox"
-                    className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
-                    checked={config.sanitizeHtml}
-                    onChange={(e) =>
-                    setConfig((c) => ({ ...c, sanitizeHtml: e.target.checked }))
-                    }
-                    disabled={!config.allowHtml}
-                />
-                <span>Sanitize HTML</span>
-                </label>
-                <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-                <input
-                    type="checkbox"
-                    className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
-                    checked={config.enableHighlight}
-                    onChange={(e) =>
-                    setConfig((c) => ({ ...c, enableHighlight: e.target.checked }))
-                    }
-                />
-                <span>Highlight Code</span>
-                </label>
-            </div>
-          </div>
+          <pre className="flex-1 p-4 font-mono text-xs text-slate-600 dark:text-slate-400 whitespace-pre-wrap overflow-auto">
+            {htmlOutput}
+          </pre>
         </section>
       </div>
     </div>

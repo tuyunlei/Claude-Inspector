@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { ClaudeContentBlock } from '../../../model/events';
 import { useI18n } from '../../i18n';
-import { HighlightText } from './HighlightText';
 import { ThinkingBlock } from './ThinkingBlock';
 import { ToolCallBlock } from './ToolCallBlock';
 import { ToolResultBlock } from './ToolResultBlock';
+import { MarkdownRenderer } from '../MarkdownRenderer';
 
 export const ContentBlock: React.FC<{ block: ClaudeContentBlock; query: string }> = ({ block, query }) => {
   const { t } = useI18n();
@@ -16,8 +15,11 @@ export const ContentBlock: React.FC<{ block: ClaudeContentBlock; query: string }
   
   if (block.type === 'text') {
     return (
-      <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800 dark:text-slate-200">
-        <HighlightText text={block.text || ''} query={query} />
+      <div className="text-sm leading-relaxed text-slate-800 dark:text-slate-200">
+        <MarkdownRenderer 
+          content={block.text || ''} 
+          className="prose-slate dark:prose-invert"
+        />
       </div>
     );
   }

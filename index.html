@@ -5,22 +5,132 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Claude Inspector</title>
     <!-- Keeping Tailwind CDN for simplicity to avoid complex PostCSS setup in this specific file structure -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script>
+      const codeStyles = {
+        color: 'inherit',
+        fontWeight: '500',
+        fontSize: '0.925em', // Fix: Make inline code larger
+        backgroundColor: 'rgba(150, 160, 170, 0.15)', // Fix: Add subtle background
+        padding: '0.125em 0.375em',
+        borderRadius: '0.25rem',
+      };
+
+      const noBackticks = {
+        content: 'none',
+      };
+
+      // Reset for code blocks to avoid double styling
+      const preCodeStyles = {
+        backgroundColor: 'transparent',
+        padding: '0',
+        fontSize: 'inherit',
+        color: 'inherit',
+        fontWeight: 'inherit',
+      };
+
       tailwind.config = {
         darkMode: 'class',
         theme: {
           extend: {
             colors: {
               slate: {
-                750: '#2d3748', 
-                850: '#1a202c', 
+                750: '#2d3748',
+                850: '#1a202c',
                 950: '#020617',
-              }
-            }
-          }
-        }
-      }
+              },
+            },
+            typography: {
+              DEFAULT: {
+                css: {
+                  'h1, h2, h3, h4': {
+                    fontWeight: '700',
+                    letterSpacing: '-0.03em',
+                  },
+                  h1: {
+                    fontSize: '1.8rem',
+                    lineHeight: '1.2',
+                    marginTop: '1.2em',
+                    marginBottom: '0.4em',
+                  },
+                  h2: {
+                    fontSize: '1.4rem',
+                    lineHeight: '1.3',
+                    marginTop: '1.0em',
+                    marginBottom: '0.35em',
+                  },
+                  h3: {
+                    fontSize: '1.2rem',
+                    lineHeight: '1.35',
+                    marginTop: '0.8em',
+                    marginBottom: '0.3em',
+                  },
+                  p: {
+                    marginTop: '0.3em',
+                    marginBottom: '0.3em',
+                  },
+                  'ul, ol': {
+                    marginTop: '0.4em',
+                    marginBottom: '0.4em',
+                  },
+                  li: {
+                    marginTop: '0.15em',
+                    marginBottom: '0.15em',
+                  },
+                  // Fix Inline Code
+                  code: codeStyles,
+                  'code::before': noBackticks,
+                  'code::after': noBackticks,
+                  'pre code': preCodeStyles,
+                },
+              },
+              sm: {
+                css: {
+                  'h1, h2, h3, h4': {
+                    fontWeight: '700',
+                    letterSpacing: '-0.03em',
+                  },
+                  h1: {
+                    fontSize: '1.8rem',
+                    lineHeight: '1.2',
+                    marginTop: '1.2em',
+                    marginBottom: '0.4em',
+                  },
+                  h2: {
+                    fontSize: '1.4rem',
+                    lineHeight: '1.3',
+                    marginTop: '1.0em',
+                    marginBottom: '0.35em',
+                  },
+                  h3: {
+                    fontSize: '1.2rem',
+                    lineHeight: '1.35',
+                    marginTop: '0.8em',
+                    marginBottom: '0.3em',
+                  },
+                  p: {
+                    marginTop: '0.3em',
+                    marginBottom: '0.3em',
+                  },
+                  'ul, ol': {
+                    marginTop: '0.4em',
+                    marginBottom: '0.4em',
+                  },
+                  li: {
+                    marginTop: '0.15em',
+                    marginBottom: '0.15em',
+                  },
+                  // Fix Inline Code for small prose
+                  code: codeStyles,
+                  'code::before': noBackticks,
+                  'code::after': noBackticks,
+                  'pre code': preCodeStyles,
+                },
+              },
+            },
+          },
+        },
+      };
     </script>
     <style>
       ::-webkit-scrollbar { width: 8px; height: 8px; }
