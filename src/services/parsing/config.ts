@@ -21,8 +21,9 @@ export async function processConfigs(
       const text = await settingsEntry.text();
       store.config.rawSettingsJson = text;
       store.config.settings = JSON.parse(text);
-    } catch (e: any) {
-      store.warnings.push({ file: settingsEntry.path, message: `Failed to parse settings.json: ${e.message}` });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      store.warnings.push({ file: settingsEntry.path, message: `Failed to parse settings.json: ${msg}` });
     }
   }
 
@@ -33,8 +34,9 @@ export async function processConfigs(
       store.config.rawMcpJson = text;
       const json = JSON.parse(text);
       store.config.mcpServers = json?.mcpServers || {};
-    } catch (e: any) {
-      store.warnings.push({ file: mcpEntry.path, message: `Failed to parse mcp-servers.json: ${e.message}` });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      store.warnings.push({ file: mcpEntry.path, message: `Failed to parse mcp-servers.json: ${msg}` });
     }
   }
 
@@ -58,8 +60,9 @@ export async function processConfigs(
             ...(store.config.mcpServers || {})
         };
       }
-    } catch (e: any) {
-       store.warnings.push({ file: optionalExtraConfig.name, message: `Failed to parse extra config JSON: ${e.message}` });
+    } catch (e: unknown) {
+       const msg = e instanceof Error ? e.message : String(e);
+       store.warnings.push({ file: optionalExtraConfig.name, message: `Failed to parse extra config JSON: ${msg}` });
     }
   }
 }

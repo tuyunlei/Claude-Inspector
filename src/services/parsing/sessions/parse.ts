@@ -1,3 +1,4 @@
+
 import { DataStore } from '../../../model/datastore';
 import { FileEntry } from '../../../model/files';
 import { ClaudeEvent } from '../../../model/events';
@@ -15,8 +16,9 @@ export function collectSessionFilePaths(fileMap: Map<string, FileEntry>): string
 async function readSessionFile(path: string, entry: FileEntry, store: DataStore): Promise<string | null> {
     try {
         return await entry.text();
-    } catch (e: any) {
-        store.warnings.push({ file: path, message: `Failed to read session file: ${e.message}` });
+    } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        store.warnings.push({ file: path, message: `Failed to read session file: ${msg}` });
         return null;
     }
 }
@@ -35,7 +37,7 @@ function parseLineToEvent(line: string, index: number, path: string, filenameId:
             toolUseResult: json.toolUseResult,
             raw: json,
         };
-    } catch (e: any) {
+    } catch (e: unknown) {
         store.warnings.push({ 
             file: path, 
             line: index + 1, 

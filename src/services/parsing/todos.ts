@@ -25,8 +25,9 @@ export async function processTodos(fileMap: Map<string, FileEntry>, store: DataS
           });
         });
       }
-    } catch (e: any) {
-      store.warnings.push({ file: path, message: `Invalid todo JSON: ${e.message}` });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      store.warnings.push({ file: path, message: `Invalid todo JSON: ${msg}` });
     }
   }
 }

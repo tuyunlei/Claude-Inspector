@@ -1,3 +1,4 @@
+
 export type TimelineActionKind = 'tool' | 'subagent' | 'snapshot' | 'tool_result' | 'other';
 
 export interface TimelineAction {
@@ -10,7 +11,7 @@ export interface TimelineAction {
     toolName?: string;
     agentName?: string;
   };
-  payload?: any;
+  payload?: Record<string, unknown>;
   isError?: boolean;
 }
 

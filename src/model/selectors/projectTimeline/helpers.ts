@@ -1,14 +1,18 @@
+
 export function stripAnsi(str: string): string {
     // eslint-disable-next-line no-control-regex
     return str.replace(/\x1b\[[0-9;]*m/g, '');
 }
 
-export function getTextContent(content: any): string {
+type MessageContent = { type: string; text?: string }[] | string;
+
+export function getTextContent(content: MessageContent | undefined): string {
+    if (!content) return '';
     if (typeof content === 'string') return content;
     if (Array.isArray(content)) {
         return content
-            .filter((c: any) => c.type === 'text')
-            .map((c: any) => c.text)
+            .filter((c): c is { type: string; text: string } => c.type === 'text' && typeof c.text === 'string')
+            .map(c => c.text)
             .join('\n');
     }
     return '';

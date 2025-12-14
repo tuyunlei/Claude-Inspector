@@ -39,8 +39,9 @@ export async function processPlans(fileMap: Map<string, FileEntry>, store: DataS
       };
 
       store.plans.push(plan);
-    } catch (e: any) {
-      store.warnings.push({ file: path, message: `Failed to read plan file: ${e.message}` });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      store.warnings.push({ file: path, message: `Failed to read plan file: ${msg}` });
     }
   }
 }

@@ -1,11 +1,12 @@
 
+
 export interface ClaudeContentBlock {
   type: 'text' | 'tool_use' | 'tool_result' | 'image' | 'thinking';
   text?: string;
   name?: string; // for tool_use
-  input?: any; // for tool_use
+  input?: Record<string, unknown>; // for tool_use
   tool_use_id?: string; // for tool_result
-  content?: string | any; // for tool_result
+  content?: string | unknown; // for tool_result
   thinking?: string; // for thinking
   signature?: string; // for thinking
 }
@@ -28,6 +29,6 @@ export interface ClaudeEvent {
   timestamp: string; // ISO string
   type: string; // user, assistant, system, summary, etc.
   message?: ClaudeMessage;
-  toolUseResult?: any;
-  raw?: any;
+  toolUseResult?: unknown;
+  raw?: Record<string, unknown>;
 }

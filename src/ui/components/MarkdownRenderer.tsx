@@ -1,9 +1,11 @@
+
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 import rehypeHighlight from 'rehype-highlight';
+import type { PluggableList } from 'unified';
 
 type MarkdownRendererProps = {
   content: string;
@@ -38,8 +40,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   sanitizeHtml = true,
   highlightCode = true,
 }) => {
-  const remarkPlugins: any[] = [];
-  const rehypePlugins: any[] = [];
+  const remarkPlugins: PluggableList = [];
+  const rehypePlugins: PluggableList = [];
 
   if (enableGfm) {
     remarkPlugins.push(remarkGfm);

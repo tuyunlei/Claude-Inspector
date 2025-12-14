@@ -62,7 +62,8 @@ export async function processHistory(fileMap: Map<string, FileEntry>, store: Dat
             }
         });
 
-    } catch (e: any) {
-       store.warnings.push({ file: historyEntry.path, message: `Failed to read history.jsonl: ${e.message}` });
+    } catch (e: unknown) {
+       const msg = e instanceof Error ? e.message : String(e);
+       store.warnings.push({ file: historyEntry.path, message: `Failed to read history.jsonl: ${msg}` });
     }
 }

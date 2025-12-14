@@ -1,8 +1,9 @@
+
 import { DataStore } from '../../datastore';
 import { selectSessionsByProject } from '../context';
 import { ClaudeEvent } from '../../events';
 import { ProjectTurn } from './types';
-import { processUserMessage, processAssistantContent } from './processors/index';
+import { processUserMessage, processAssistantContent, DebugStats } from './processors/index';
 
 export * from './types';
 
@@ -40,7 +41,7 @@ export function selectProjectTimeline(data: DataStore, projectId: string): Proje
   let pendingGuardrail: string | null = null;
 
   // [DEBUG] Stats container
-  const debugStats = {
+  const debugStats: DebugStats = {
     total: 0,
     toolOnly: 0,
     complex: 0,
@@ -48,7 +49,7 @@ export function selectProjectTimeline(data: DataStore, projectId: string): Proje
     compaction: 0,
     guardrails: 0,
     systemNotes: 0,
-    reasons: { lenThreshold: 0, hasCodeFence: 0, both: 0 } as Record<string, number>
+    reasons: {}
   };
   const shouldLog = !loggedDebugProjects.has(projectId) && !!projectId;
 

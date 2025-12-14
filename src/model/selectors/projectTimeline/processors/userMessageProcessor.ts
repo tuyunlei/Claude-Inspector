@@ -1,6 +1,18 @@
+
 import { ClaudeEvent } from '../../../events';
 import { ProjectTurn, ContextEvent } from '../types';
 import { getTextContent, stripAnsi } from '../helpers';
+
+export interface DebugStats {
+    total: number;
+    toolOnly: number;
+    complex: number;
+    normal: number;
+    compaction: number;
+    guardrails: number;
+    systemNotes: number;
+    reasons: Record<string, number>;
+}
 
 export interface ProcessUserMessageResult {
     newBlock: ProjectTurn | null;
@@ -15,7 +27,7 @@ export function processUserMessage(
     blocks: ProjectTurn[], 
     queryCounter: number, 
     pendingGuardrail: string | null,
-    debugStats: any,
+    debugStats: DebugStats,
     shouldLog: boolean
 ): ProcessUserMessageResult {
     const timeStr = new Date(event.timestamp).toLocaleTimeString(undefined, {

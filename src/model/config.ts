@@ -1,4 +1,5 @@
 
+
 export interface McpServerConfig {
   command: string;
   args: string[];
@@ -6,7 +7,7 @@ export interface McpServerConfig {
 }
 
 export interface ConfigData {
-  settings?: any;
+  settings?: Record<string, unknown>;
   mcpServers?: Record<string, McpServerConfig>;
   rawSettingsJson?: string;
   rawMcpJson?: string;

@@ -59,9 +59,9 @@ export const useUploadProcessor = (onDataLoaded: (data: DataStore) => void) => {
       const store = await buildDataStoreFromEntries(entries, config || undefined);
       onDataLoaded(store);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Upload error details:", err);
-      let errorDetails = err instanceof Error ? err.message : String(err);
+      const errorDetails = err instanceof Error ? err.message : String(err);
       setError(`${t('upload.error')}: ${errorDetails}`);
       setLoading(false);
     }

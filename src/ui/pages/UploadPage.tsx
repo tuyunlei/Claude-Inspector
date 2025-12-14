@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useCallback } from 'react';
 import { UploadCloud, FileJson, Loader2, AlertTriangle, Command, Info } from 'lucide-react';
 import { DataStore } from '../../model/datastore';
@@ -128,9 +127,7 @@ export const UploadPage: React.FC<UploadProps> = ({ onDataLoaded }) => {
                   ref={dirInputRef}
                   onChange={handleManualDirSelect}
                   className="hidden"
-                  /* @ts-ignore */
-                  directory="" 
-                  webkitdirectory="" 
+                  {...({ directory: "", webkitdirectory: "" } as any)}
                 />
                 <input
                   type="file"
