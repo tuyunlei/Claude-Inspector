@@ -1,7 +1,6 @@
-
 import React from 'react';
-import { ProjectTurn } from '../../../model/selectors/projectTimeline';
-import { QueryBlockCard } from './QueryBlockCard';
+import { ProjectTurn } from '../../../model/selectors/projectTimeline/index';
+import { QueryBlockCard } from './QueryBlockCard/index';
 
 interface QueryTimelineListProps {
   blocks: ProjectTurn[];

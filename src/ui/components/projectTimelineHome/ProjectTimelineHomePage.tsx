@@ -4,7 +4,7 @@ import { useI18n } from '../../i18n';
 import { useData } from '../../../app/DataContext';
 import { Activity, ArrowLeft, FolderSearch, ChevronRight, AlertTriangle } from 'lucide-react';
 import { QueryTimelineList } from './QueryTimelineList';
-import { selectProjectTimeline, ProjectTurn } from '../../../model/selectors/projectTimeline';
+import { selectProjectTimeline, ProjectTurn } from '../../../model/selectors/projectTimeline/index';
 import { selectProjectIdentities, buildUniqueProjectDisplayNames } from '../../../model/selectors/projectIdentity';
 import { formatDate } from '../../../utils/utils';
 
