@@ -1,17 +1,8 @@
-
 import React, { useState } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { UploadPage } from '../ui/pages/UploadPage';
-import { ConfigPage } from '../ui/pages/ConfigPage';
 import { Layout } from '../ui/components/layout/Layout';
-import { ProjectWorkspacePage } from '../ui/pages/ProjectWorkspace/ProjectWorkspacePage';
-import { DashboardPage } from '../ui/pages/DashboardPage';
-import { GlobalHistoryPage } from '../ui/pages/GlobalHistoryPage';
-import { GlobalFilesPage } from '../ui/pages/GlobalFilesPage';
-import { ProjectDirectoryPage } from '../ui/pages/Projects/ProjectDirectoryPage';
-import { MarkdownDebugPage } from '../ui/pages/MarkdownDebugPage';
 import { ProjectTimelineHomePage } from '../ui/components/projectTimelineHome/ProjectTimelineHomePage';
-import { ProjectListHomePage } from '../ui/components/projectListHome/ProjectListHomePage';
 import { DataStore } from '../model/datastore';
 import { I18nProvider } from '../ui/i18n';
 import { ThemeProvider } from '../ui/theme';
@@ -29,7 +20,7 @@ const AppRoutes = () => {
 
     const handleDataLoaded = (store: DataStore) => {
         setData(store);
-        navigate('/overview');
+        navigate('/timeline');
     };
 
     const handleReset = () => {
@@ -64,7 +55,8 @@ const AppRoutes = () => {
             }
             
             setData(newData);
-            navigate('/config');
+            // No config page anymore, stay on timeline or alert success
+            alert("Config updated (Config page deprecated)");
         } catch (e) {
             console.error(e);
             alert("Failed to process config file");
@@ -78,67 +70,15 @@ const AppRoutes = () => {
             <Routes>
                 {/* Public / Upload Route */}
                 <Route path="/" element={
-                     !data ? <UploadPage onDataLoaded={handleDataLoaded} /> : <Navigate to="/overview" replace />
+                     !data ? <UploadPage onDataLoaded={handleDataLoaded} /> : <Navigate to="/timeline" replace />
                 } />
 
                 {/* Main App Layout */}
                 <Route element={<Layout hasData={hasData} onReset={handleReset} onConfigUpload={handleConfigUpload} />}>
                     
-                    {/* New Top-Level Routes */}
-                    <Route path="/overview" element={
-                        <ProtectedRoute isAllowed={hasData}>
-                            <DashboardPage />
-                        </ProtectedRoute>
-                    } />
-                    
-                    <Route path="/project-list" element={
-                        <ProtectedRoute isAllowed={hasData}>
-                            <ProjectListHomePage />
-                        </ProtectedRoute>
-                    } />
-
                     <Route path="/timeline" element={
                         <ProtectedRoute isAllowed={hasData}>
                             <ProjectTimelineHomePage />
-                        </ProtectedRoute>
-                    } />
-
-                    <Route path="/history" element={
-                        <ProtectedRoute isAllowed={hasData}>
-                            <GlobalHistoryPage />
-                        </ProtectedRoute>
-                    } />
-
-                    <Route path="/files" element={
-                        <ProtectedRoute isAllowed={hasData}>
-                            <GlobalFilesPage />
-                        </ProtectedRoute>
-                    } />
-
-                    <Route path="/projects" element={
-                        <ProtectedRoute isAllowed={hasData}>
-                            <ProjectDirectoryPage />
-                        </ProtectedRoute>
-                    } />
-
-                    {/* Existing Project Workspace */}
-                    <Route path="/project/:projectId" element={
-                        <ProtectedRoute isAllowed={hasData}>
-                            <ProjectWorkspacePage />
-                        </ProtectedRoute>
-                    } />
-
-                    {/* Config */}
-                    <Route path="/config" element={
-                        <ProtectedRoute isAllowed={hasData}>
-                            <ConfigPage />
-                        </ProtectedRoute>
-                    } />
-
-                    {/* Markdown Debug */}
-                    <Route path="/debug/markdown" element={
-                        <ProtectedRoute isAllowed={hasData}>
-                            <MarkdownDebugPage />
                         </ProtectedRoute>
                     } />
 

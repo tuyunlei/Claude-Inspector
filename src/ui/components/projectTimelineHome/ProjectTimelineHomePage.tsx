@@ -1,12 +1,12 @@
-
 import React, { useMemo, useLayoutEffect, useRef, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import { useData } from '../../../app/DataContext';
-import { Activity, ArrowLeft, FolderSearch } from 'lucide-react';
+import { Activity, ArrowLeft, FolderSearch, ChevronRight, AlertTriangle } from 'lucide-react';
 import { QueryTimelineList } from './QueryTimelineList';
 import { selectProjectTimeline, ProjectTurn } from '../../../model/selectors/projectTimeline';
 import { selectProjectIdentities, buildUniqueProjectDisplayNames } from '../../../model/selectors/projectIdentity';
+import { formatDate } from '../../../utils/utils';
 
 // Extended type to support merged state in UI
 export type ProjectTurnWithMerge = ProjectTurn & {
@@ -16,8 +16,7 @@ export type ProjectTurnWithMerge = ProjectTurn & {
 export const ProjectTimelineHomePage: React.FC = () => {
   const { t } = useI18n();
   const { data } = useData();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   // 1. Get Context
   const projectId = searchParams.get('projectId');
@@ -154,7 +153,6 @@ export const ProjectTimelineHomePage: React.FC = () => {
       const newClientHeight = target.clientHeight;
       
       const oldScrollHeight = lastScrollHeightRef.current || 0;
-      // const oldClientHeight = lastClientHeightRef.current || newClientHeight;
       
       const delta = newScrollHeight - oldScrollHeight;
 
@@ -177,20 +175,74 @@ export const ProjectTimelineHomePage: React.FC = () => {
 
 
   const handleBack = () => {
-      navigate('/project-list');
+      // Clear project ID to return to list view
+      setSearchParams({});
+  };
+
+  const handleSelectProject = (id: string) => {
+      setSearchParams({ projectId: id });
   };
 
   if (!projectId) {
+      // Inline Project List View
       return (
-        <div className="flex flex-col items-center justify-center h-full bg-slate-50 dark:bg-slate-950 text-slate-400">
-            <FolderSearch size={48} className="mb-4 opacity-20" />
-            <p className="text-lg font-medium">No Project Selected</p>
-            <button 
-                onClick={handleBack}
-                className="mt-4 text-orange-600 hover:text-orange-700 font-medium text-sm flex items-center gap-1"
-            >
-                <ArrowLeft size={16} /> Go to Project List
-            </button>
+        <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 overflow-hidden">
+             <div className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center px-6 shrink-0 z-10 shadow-sm">
+                <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 mr-3">
+                    Projects
+                </h1>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 md:p-6">
+                <div className="max-w-4xl mx-auto space-y-3">
+                    {projectIdentities.length > 0 ? (
+                        projectIdentities.map(p => {
+                             const name = displayNames.get(p.id) || p.id;
+                             const isLowConfidence = p.pathConfidence === 'low';
+                             return (
+                                <div 
+                                    key={p.id}
+                                    onClick={() => handleSelectProject(p.id)}
+                                    className="group flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-orange-200 dark:hover:border-orange-900/50 cursor-pointer transition-all"
+                                >
+                                    <div className="flex flex-col min-w-0 pr-4">
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors truncate">
+                                                {name}
+                                            </h3>
+                                            {isLowConfidence && (
+                                                <div title="Path guessed from directory name" className="flex items-center">
+                                                    <AlertTriangle size={16} className="text-amber-500" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="mt-0.5 text-xs text-slate-400 dark:text-slate-500 font-mono truncate" title={p.canonicalPath}>
+                                            {p.canonicalPath}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4 md:gap-8 shrink-0 text-right">
+                                        <div>
+                                            <div className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                                                {formatDate(p.lastActiveAt)}
+                                            </div>
+                                            <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                                                {p.queryCount} messages
+                                            </div>
+                                        </div>
+                                        <div className="text-slate-300 dark:text-slate-600 group-hover:text-orange-500 transition-colors">
+                                            <ChevronRight size={20} />
+                                        </div>
+                                    </div>
+                                </div>
+                             );
+                        })
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <FolderSearch size={48} className="text-slate-300 dark:text-slate-700 mb-4" />
+                            <p className="text-slate-500 dark:text-slate-400">No projects found in logs.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
       );
   }
