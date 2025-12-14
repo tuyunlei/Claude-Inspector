@@ -1,8 +1,9 @@
+
 import React, { useRef, useState, useCallback } from 'react';
 import { UploadCloud, FileJson, Loader2, AlertTriangle, Command, Info } from 'lucide-react';
 import { DataStore } from '../../model/datastore';
 import { useI18n } from '../i18n';
-import { cn } from '../../utils/utils';
+import { cn } from '../../lib/utils';
 import { useUploadProcessor } from '../hooks/useUploadProcessor';
 
 interface UploadProps {

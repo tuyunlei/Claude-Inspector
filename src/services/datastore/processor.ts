@@ -1,12 +1,11 @@
 
-
 import { DataStore } from '../../model/datastore';
 import { FileEntry } from '../../model/files';
 import { processConfigs } from '../parsing/config';
 import { processTodos } from '../parsing/todos';
 import { processPlans } from '../parsing/plans';
 import { processSessions, processHistory } from '../parsing/sessions';
-import { calculateProjectStats } from '../../model/analytics/projects';
+import { calculateProjectStats } from '../analytics/projects';
 import { buildFileTree } from '../filesystem/tree';
 
 export const buildDataStoreFromEntries = async (

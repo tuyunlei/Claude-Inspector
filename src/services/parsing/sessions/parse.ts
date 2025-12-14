@@ -2,7 +2,7 @@
 import { DataStore } from '../../../model/datastore';
 import { FileEntry } from '../../../model/files';
 import { ClaudeEvent } from '../../../model/events';
-import { UNKNOWN_PROJECT_PATH, decodeProjectName } from '../../../model/analytics/projects';
+import { UNKNOWN_PROJECT_PATH, decodeProjectName } from '../../analytics/projects';
 import { ParsedSessionSnapshot } from './types';
 import { detectSessionFeatures } from './classification';
 import { generateDisplayForSession } from './display';

@@ -1,6 +1,7 @@
+
 import { ClaudeEvent } from '../../../model/events';
 import { SessionStoryRole } from '../../../model/sessions';
-import { UNKNOWN_PROJECT_PATH } from '../../../model/analytics/projects';
+import { UNKNOWN_PROJECT_PATH } from '../../analytics/projects';
 
 interface DisplayParams {
     storyRole: SessionStoryRole;

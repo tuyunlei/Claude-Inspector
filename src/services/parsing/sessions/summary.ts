@@ -1,4 +1,5 @@
-import { decodeProjectName, GLOBAL_SESSIONS_ID, SYSTEM_SESSIONS_ID, UNKNOWN_PROJECT_PATH } from '../../../model/analytics/projects';
+
+import { decodeProjectName, GLOBAL_SESSIONS_ID, SYSTEM_SESSIONS_ID, UNKNOWN_PROJECT_PATH } from '../../analytics/projects';
 import { SessionSummary, SessionPathUsage, SessionStoryRole } from '../../../model/sessions';
 import { ParsedSessionSnapshot } from './types';
 
