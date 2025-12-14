@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { UploadPage } from '../ui/pages/UploadPage';
@@ -9,6 +10,8 @@ import { GlobalHistoryPage } from '../ui/pages/GlobalHistoryPage';
 import { GlobalFilesPage } from '../ui/pages/GlobalFilesPage';
 import { ProjectDirectoryPage } from '../ui/pages/Projects/ProjectDirectoryPage';
 import { MarkdownDebugPage } from '../ui/pages/MarkdownDebugPage';
+import { ProjectTimelineHomePage } from '../ui/components/projectTimelineHome/ProjectTimelineHomePage';
+import { ProjectListHomePage } from '../ui/components/projectListHome/ProjectListHomePage';
 import { DataStore } from '../model/datastore';
 import { I18nProvider } from '../ui/i18n';
 import { ThemeProvider } from '../ui/theme';
@@ -88,6 +91,18 @@ const AppRoutes = () => {
                         </ProtectedRoute>
                     } />
                     
+                    <Route path="/project-list" element={
+                        <ProtectedRoute isAllowed={hasData}>
+                            <ProjectListHomePage />
+                        </ProtectedRoute>
+                    } />
+
+                    <Route path="/timeline" element={
+                        <ProtectedRoute isAllowed={hasData}>
+                            <ProjectTimelineHomePage />
+                        </ProtectedRoute>
+                    } />
+
                     <Route path="/history" element={
                         <ProtectedRoute isAllowed={hasData}>
                             <GlobalHistoryPage />

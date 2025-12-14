@@ -1,12 +1,8 @@
+
 import { DataStore } from '../../../model/datastore';
 import { FileEntry } from '../../../model/files';
+import { HistoryItem } from '../../../model/history';
 import { HISTORY_SESSION_MATCH_WINDOW_MS } from './types';
-
-interface HistoryItem {
-    timestamp: string;
-    project: string;
-    display?: string;
-}
 
 function findHistoryFile(fileMap: Map<string, FileEntry>): FileEntry | undefined {
     // Identify root directory name if present in paths
@@ -55,6 +51,10 @@ export async function processHistory(fileMap: Map<string, FileEntry>, store: Dat
         const text = await historyEntry.text();
         const items = parseHistoryLines(text, historyEntry.path, store);
 
+        // Store raw items
+        store.history = items;
+
+        // Enrich sessions with display names from history
         items.forEach((item) => {
             const matchedSession = findMatchingSession(item, store);
             if (matchedSession && item.display) {

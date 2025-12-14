@@ -5,6 +5,7 @@ import { TodoItem } from './todos';
 import { Plan } from './plans';
 import { ConfigData, ParseWarning } from './config';
 import { FileTreeNode, FileEntry } from './files';
+import { HistoryItem } from './history';
 
 export interface DataStore {
   sessions: SessionSummary[];
@@ -12,6 +13,7 @@ export interface DataStore {
   todos: TodoItem[];
   plans: Plan[];
   config: ConfigData;
+  history: HistoryItem[];
   warnings: ParseWarning[];
   isLoaded: boolean;
   fileCount: number;

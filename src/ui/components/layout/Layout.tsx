@@ -1,6 +1,7 @@
+
 import React, { useState, useRef } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Settings, UploadCloud, Sun, Moon, Languages, Menu, X, Monitor, PanelLeftClose, PanelLeftOpen, LayoutDashboard, FolderTree, History, FolderGit2, FileJson, Bug } from 'lucide-react';
+import { Settings, UploadCloud, Sun, Moon, Languages, Menu, X, Monitor, PanelLeftClose, PanelLeftOpen, LayoutDashboard, FolderTree, History, FolderGit2, FileJson, Bug, Activity, List } from 'lucide-react';
 import { cn } from '../../../utils/utils';
 import { useI18n } from '../../i18n';
 import { useTheme, Theme } from '../../theme';
@@ -18,6 +19,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onReset, onConfigUpload, isOpen, onCl
 
   const navItems = [
       { path: '/overview', icon: LayoutDashboard, label: t('workspace.tabs.overview') },
+      { path: '/project-list', icon: List, label: t('sidebar.projectListExp') }, // New Item
+      { path: '/timeline', icon: Activity, label: t('sidebar.timeline') },
       { path: '/projects', icon: FolderGit2, label: t('sidebar.projects') },
       { path: '/history', icon: History, label: t('sidebar.globalHistory') },
       { path: '/files', icon: FolderTree, label: t('sidebar.globalFiles') },

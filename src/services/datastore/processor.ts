@@ -1,4 +1,5 @@
 
+
 import { DataStore } from '../../model/datastore';
 import { FileEntry } from '../../model/files';
 import { processConfigs } from '../parsing/config';
@@ -24,6 +25,7 @@ export const buildDataStoreFromEntries = async (
     todos: [],
     plans: [],
     config: {},
+    history: [],
     warnings: [],
     isLoaded: false,
     fileCount: entries.length,

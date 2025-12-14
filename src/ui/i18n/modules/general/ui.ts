@@ -8,6 +8,8 @@ export const generalUi = {
       upload: "Upload Logs",
       uploadConfig: "Add Config",
       globalConfig: "Global Config",
+      timeline: "Timeline Home (Exp)",
+      projectListExp: "Projects (Exp)",
       collapse: "Collapse Sidebar",
       expand: "Expand Sidebar",
       noProjects: "No Projects Found",
@@ -46,6 +48,38 @@ export const generalUi = {
       globalSettings: "Global Settings (Hooks)",
       noHooks: "No hooks configured in settings.json",
       envVars: "Env Variables"
+    },
+    timeline: {
+      title: "Timeline Home",
+      experiment: "Experimental",
+      workspacePlaceholder: "Current workspace: ~/.claude (mock)",
+      thinking: "Thinking (Low priority debug info, placeholder)",
+      expand: "Expand",
+      collapse: "Collapse",
+      actions: "Actions",
+      queryLabel: "Query",
+      detailsButton: "Details",
+      filesChanged: "Changed",
+      filesRead: "Read",
+      filesTouched: "Touched",
+      noToolsUsed: "No tools used",
+      toolsLabel: "Tools",
+      assistantReply: "Assistant Reply",
+      viewDetails: "Details",
+      contextCompacted: "Context Compacted",
+      contextEvent: "System Context",
+      chars: "chars",
+      lines: "lines",
+      contextLabel: "Context",
+      longInputLabel: "Long Input"
+    },
+    projectList: {
+      title: "Projects",
+      experiment: "Experimental",
+      emptyTitle: "No Projects Found",
+      emptyDesc: "Please ensure ~/.claude contains Claude Code history records, or import a new workspace in settings later.",
+      lastActive: "Last Conversation",
+      messages: "Conversations"
     }
   },
   zh: {
@@ -56,6 +90,8 @@ export const generalUi = {
       upload: "重新上传",
       uploadConfig: "补充配置",
       globalConfig: "全局配置",
+      timeline: "时间线首页 (实验)",
+      projectListExp: "项目 (实验)",
       collapse: "收起侧边栏",
       expand: "展开侧边栏",
       noProjects: "未找到项目",
@@ -94,6 +130,38 @@ export const generalUi = {
       globalSettings: "全局设置 (Hooks)",
       noHooks: "settings.json 中未配置 hooks",
       envVars: "环境变量"
+    },
+    timeline: {
+      title: "时间线首页",
+      experiment: "实验功能",
+      workspacePlaceholder: "当前工作区: ~/.claude (模拟数据)",
+      thinking: "Thinking（低优先级调试信息，占位，后续支持展开）",
+      expand: "展开",
+      collapse: "收起",
+      actions: "Actions",
+      queryLabel: "Query",
+      detailsButton: "详情",
+      filesChanged: "改动",
+      filesRead: "读取",
+      filesTouched: "涉及",
+      noToolsUsed: "未使用工具",
+      toolsLabel: "工具",
+      assistantReply: "回复预览",
+      viewDetails: "详情",
+      contextCompacted: "上下文已压缩",
+      contextEvent: "系统上下文",
+      chars: "字符",
+      lines: "行",
+      contextLabel: "上下文",
+      longInputLabel: "长输入"
+    },
+    projectList: {
+      title: "项目",
+      experiment: "实验功能",
+      emptyTitle: "没有找到项目",
+      emptyDesc: "请确认 ~/.claude 中存在 Claude Code 的历史记录，或稍后在设置中导入新的工作区。",
+      lastActive: "上次对话",
+      messages: "对话次数"
     }
   }
 };
