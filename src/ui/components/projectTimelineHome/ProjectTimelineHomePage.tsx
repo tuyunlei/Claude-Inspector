@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import { useData } from '../../../app/DataContext';
 import { selectProjectTimeline } from '../../../model/selectors/projectTimeline/index';
-import { selectProjectIdentities, buildUniqueProjectDisplayNames } from '../../../model/selectors/projectIdentity';
+import { selectProjectIdentities, buildUniqueProjectDisplayNames } from '../../../model/selectors/projectIdentity/index';
 
 import { ProjectListView } from './ProjectListView';
 import { ProjectDetailView } from './ProjectDetailView';
