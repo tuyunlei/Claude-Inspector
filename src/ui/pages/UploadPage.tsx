@@ -51,7 +51,7 @@ export const UploadPage: React.FC<UploadProps> = ({ onDataLoaded }) => {
       
       return (
           <>
-            {parts.map((part, i) => {
+            {parts.map((part: string, i: number) => {
                 if (part === '||PATH||') {
                     return <code key={i} className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-slate-600 dark:text-slate-300">~/.claude</code>;
                 }

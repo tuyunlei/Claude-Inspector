@@ -1,7 +1,7 @@
 
-import { DataStore } from '../../model/datastore';
+import { DataStore } from '../../../model/datastore';
 import { selectSessionsByProject } from '../context';
-import { ClaudeEvent } from '../../model/events';
+import { ClaudeEvent } from '../../../model/events';
 import { ProjectTurn } from './types';
 import { processUserMessage, processAssistantContent, DebugStats } from './processors/index';
 
