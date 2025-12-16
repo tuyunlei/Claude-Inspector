@@ -1,7 +1,11 @@
 
 import { useLayoutEffect, useEffect, useRef } from 'react';
 
-export function useScrollToBottom(projectId: string | null, blocksLength: number) {
+interface ScrollOptions {
+  preventAutoScroll?: boolean;
+}
+
+export function useScrollToBottom(projectId: string | null, blocksLength: number, options?: ScrollOptions) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const scrollModeRef = useRef<'autoBottom' | 'user'>('autoBottom');
   const lastScrollHeightRef = useRef<number>(0);
@@ -17,6 +21,7 @@ export function useScrollToBottom(projectId: string | null, blocksLength: number
     const isProjectSwitch = prevProjectIdRef.current !== projectId;
     prevProjectIdRef.current = projectId;
 
+    // Reset to auto-scroll on project switch
     if (isProjectSwitch) {
       scrollModeRef.current = 'autoBottom';
     }
@@ -25,10 +30,15 @@ export function useScrollToBottom(projectId: string | null, blocksLength: number
     lastScrollHeightRef.current = scrollHeight;
     lastClientHeightRef.current = clientHeight;
 
+    // Skip auto-scrolling if explicitly prevented (e.g., during history prepend)
+    if (options?.preventAutoScroll) {
+      return;
+    }
+
     if (scrollModeRef.current === 'autoBottom') {
       el.scrollTop = Math.max(scrollHeight - clientHeight, 0);
     }
-  }, [projectId, blocksLength]);
+  }, [projectId, blocksLength, options?.preventAutoScroll]);
 
   // Logic 2: Scroll Event Listener
   useEffect(() => {
@@ -39,6 +49,7 @@ export function useScrollToBottom(projectId: string | null, blocksLength: number
       const { scrollTop, scrollHeight, clientHeight } = el;
       const distanceToBottom = scrollHeight - (scrollTop + clientHeight);
 
+      // Only switch to user mode if we are moving AWAY from the bottom significantly
       if (scrollModeRef.current === 'autoBottom' && distanceToBottom > BOTTOM_THRESHOLD) {
         scrollModeRef.current = 'user';
       }
@@ -66,7 +77,7 @@ export function useScrollToBottom(projectId: string | null, blocksLength: number
       
       const delta = newScrollHeight - oldScrollHeight;
 
-      if (delta > 0 && scrollModeRef.current === 'autoBottom') {
+      if (delta > 0 && scrollModeRef.current === 'autoBottom' && !options?.preventAutoScroll) {
         const prevMaxScrollTop = Math.max(oldScrollHeight - newClientHeight, 0);
         const distanceToBottomBefore = prevMaxScrollTop - target.scrollTop;
 
@@ -81,7 +92,7 @@ export function useScrollToBottom(projectId: string | null, blocksLength: number
 
     resizeObserver.observe(el);
     return () => resizeObserver.disconnect();
-  }, [projectId]);
+  }, [projectId, options?.preventAutoScroll]);
 
   return { scrollContainerRef };
 }
